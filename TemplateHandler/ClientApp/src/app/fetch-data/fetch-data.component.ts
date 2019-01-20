@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
   selector: 'app-fetch-data',
   templateUrl: './fetch-data.component.html'
 })
-export class FetchDataComponent {
+/*export class FetchDataComponent {
   public forecasts: WeatherForecast[];
 
   constructor(http: HttpClient, @Inject('BASE_URL') baseUrl: string) {
@@ -13,6 +13,22 @@ export class FetchDataComponent {
       this.forecasts = result;
     }, error => console.error(error));
   }
+}*/
+
+export class FetchDataComponent {
+  public templates: TemplateFiles[];
+
+  constructor(http: HttpClient, @Inject('BASE_URL') baseUrl: string) {
+    http.get<TemplateFiles[]>(baseUrl + 'api/TemplateFile/getTemplates').subscribe(result => {
+      this.templates = result;
+    }, error => console.error(error));
+  }
+}
+
+interface TemplateFiles {
+  id: number;
+  name: string;
+  path: string;
 }
 
 interface WeatherForecast {
