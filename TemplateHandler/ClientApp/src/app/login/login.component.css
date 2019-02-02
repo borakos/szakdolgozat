@@ -1,0 +1,15 @@
+@import "./../../styles.css";
+
+.loginbox{
+    width: 400px;
+    height: auto;
+    position: absolute;
+    z-index: 2;
+    top: 50%;
+    left: 50%;
+    margin: -200px 0 0 -200px;
+    padding: 20px;
+    border-radius: 5px;
+    color: aliceblue;
+    background: #6992a5;
+}

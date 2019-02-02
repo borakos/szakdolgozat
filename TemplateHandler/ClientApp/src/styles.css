@@ -1,1 +1,14 @@
-/* You can add global styles to this file, and also import other style files */
+::placeholder{
+    color:#b8cbd3;
+}
+
+.btn-primary{
+    background: #496a7a;
+    border-color: #6992a5;
+}
+
+.form-control{
+    background: #496a7a;
+    color: aliceblue;
+    border-color: #b8cbd3;
+}
