@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
+import { Router } from '@angular/router';
+import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
 
 @Component({
   selector: 'app-nav',
@@ -6,19 +8,19 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./nav.component.css']
 })
 export class NavComponent implements OnInit {
-  isExpanded= false;
+  role:string;
 
-  constructor() { }
+  constructor(private router:Router) {
+    this.role=localStorage.getItem('role');
+  }
 
   ngOnInit() {
   }
 
-  collapse() {
-    this.isExpanded = false;
+  logOut(){
+    localStorage.removeItem("jwt");
+    localStorage.removeItem("role");
+    localStorage.removeItem("user");
+    this.router.navigate(["login"]);
   }
-
-  toggle() {
-    this.isExpanded = !this.isExpanded;
-  }
-
 }

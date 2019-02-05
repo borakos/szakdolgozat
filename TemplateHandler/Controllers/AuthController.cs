@@ -30,14 +30,17 @@ namespace TemplateHandler.Controllers
                 SymmetricSecurityKey secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Startup.Configuration["Authentication:Key:SymmetricSecurityKey"]));
                 SigningCredentials signInCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
                 List<Claim> claims = new List<Claim> {
-                    new Claim("userName", user.userName),
-                    new Claim("role", loggedInUser.role.ToString())
+                    new Claim("userName", loggedInUser.userName),
+                    new Claim("role", loggedInUser.role.ToString()),
+                    new Claim("nativeName", loggedInUser.nativeName),
+                    new Claim("email", loggedInUser.email),
+                    new Claim("id", loggedInUser.id.ToString())
                 };
                 JwtSecurityToken tokenOptions = new JwtSecurityToken(
                     issuer: Startup.Configuration["Server:Host"],
                     audience: Startup.Configuration["Server:Host"],
                     claims: claims,
-                    expires: DateTime.Now.AddMinutes(5),
+                    expires: DateTime.Now.AddHours(1),
                     signingCredentials: signInCredentials
                 );
                 string tokenString = new JwtSecurityTokenHandler().WriteToken(tokenOptions);

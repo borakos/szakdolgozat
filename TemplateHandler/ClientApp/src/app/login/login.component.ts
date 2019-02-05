@@ -4,6 +4,14 @@ import { Router } from '@angular/router';
 import { NgForm } from '@angular/forms';
 import { JwtHelperService } from '@auth0/angular-jwt';
 
+interface User {
+  id: number;
+  userName: string;
+  nativeName: string;
+  email: string;
+  role: string;
+}
+
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
@@ -28,8 +36,15 @@ export class LoginComponent implements OnInit {
     }).subscribe(response => {
       let token = (<any>response).token;
       let decodedToken=this.jwtHelper.decodeToken(token)
+      let user= {} as User;
+      user.email=decodedToken.email;
+      user.id=decodedToken.id;
+      user.nativeName=decodedToken.nativeName;
+      user.role=decodedToken.role;
+      user.userName=decodedToken.userName;
       localStorage.setItem("role", decodedToken.role);
       localStorage.setItem("jwt", token);
+      localStorage.setItem("user",JSON.stringify(user));
       this.invalidLogin = false;
       this.router.navigate(["/"]);
     }, err => {

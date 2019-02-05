@@ -13,14 +13,35 @@ namespace TemplateHandler.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        [HttpGet,Authorize(Roles ="admin")]
-        public IEnumerable<string> Get() {
-            return new string[] { "Teszt1", "Teszt2" };
+        private ConnectionContext context;
+
+        public UsersController() {
+            context = HttpContext.RequestServices.GetService(typeof(ConnectionContext)) as ConnectionContext;
         }
 
-        [HttpPost, Route("thisuser"), Authorize(Roles = "admin")]
-        public string GetThis([FromBody] string id) {
-            return id;
+        [HttpGet, Route("index"), Authorize(Roles ="admin")]
+        public IEnumerable<UserModel> index() {
+            return context.getAllUsers();
+        }
+
+        [HttpGet, Route("details/{id}"), Authorize(Roles = "admin")]
+        public UserModel details(int id) {
+            return context.getUserById(id);
+        }
+
+        [HttpPost, Route("create"), Authorize(Roles = "admin")]
+        public int create([FromBody] UserModel user) {
+            return 1;
+        }
+
+        [HttpPut, Route("edit/{id}"), Authorize(Roles = "admin")]
+        public int edit(int id) {
+            return 1;
+        }
+
+        [HttpDelete, Route("delete/{id}"), Authorize(Roles = "admin")]
+        public int delete(int id) {
+            return 1;
         }
     }
 }

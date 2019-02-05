@@ -1,0 +1,9 @@
+@import "./../nav/nav.component.css";
+
+h1, h2, h5, p, i{
+    color: #212529;
+}
+
+p{
+    padding-left: 20px;
+}

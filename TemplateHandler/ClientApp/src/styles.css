@@ -12,3 +12,12 @@
     color: aliceblue;
     border-color: #b8cbd3;
 }
+
+.main-back{
+    background-color: #d9e3e8;
+    height: 100vh;
+}
+
+a{
+    text-decoration: none;
+}

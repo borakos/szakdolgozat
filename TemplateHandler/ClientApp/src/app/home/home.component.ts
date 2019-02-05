@@ -2,6 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { Router } from '@angular/router';
 
+interface User {
+  id: number;
+  userName: string;
+  nativeName: string;
+  email: string;
+  role: string;
+}
+
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -11,13 +19,11 @@ export class HomeComponent implements OnInit {
 
   constructor(private jwtHelper: JwtHelperService, private router: Router) { }
 
-  ngOnInit() {
-  }
+  user:User;
 
-  logOut(){
-    localStorage.removeItem("jwt");
-    localStorage.removeItem("role");
-    this.router.navigate(["login"]);
+  ngOnInit() {
+    this.user=JSON.parse(localStorage.getItem("user"));
+    console.log(this.user.nativeName);
   }
 
   isUserAuthenticated() {
