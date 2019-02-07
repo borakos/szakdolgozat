@@ -15,53 +15,54 @@ import { NavComponent } from './nav/nav.component';
 import { createCustomElement } from '@angular/elements';
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    LoginComponent,
-    HomeComponent,
-    UsersComponent,
-    NavComponent
-  ],
-  imports: [
-    BrowserModule,
-    FormsModule,
-    HttpClientModule,
-    JwtModule.forRoot({
-      config:{
-        throwNoTokenError: false,
-        tokenGetter: getToken,
-        whitelistedDomains: ["localhost:44396"]
-      }
-    }),
-    RouterModule.forRoot([
-      {
-        path:'',
-        component:HomeComponent,
-        canActivate: [AuthGuard]
-      },
-      {
-        path:'login',
-        component: LoginComponent
-      },
-      {
-        path:'users',
-        component:UsersComponent,
-        canActivate: [AuthGuard && AdminGuard]
-      }
-    ])
-  ],
-  providers: [JwtHelperService, AuthGuard, AdminGuard],
-  bootstrap: [AppComponent]
+	declarations: [
+		AppComponent,
+		LoginComponent,
+		HomeComponent,
+		UsersComponent,
+		NavComponent
+	],
+	imports: [
+		BrowserModule,
+		FormsModule,
+		HttpClientModule,
+		JwtModule.forRoot({
+		config:{
+			throwNoTokenError: false,
+			tokenGetter: getToken,
+			whitelistedDomains: ["localhost:44396"]
+		}
+		}),
+		RouterModule.forRoot([
+		{
+			path:'login',
+			component: LoginComponent
+		},
+		{
+			path:'users',
+			component:UsersComponent,
+			canActivate: [AuthGuard, AdminGuard]
+		},
+		{
+			path:'',
+			component:HomeComponent,
+			canActivate: [AuthGuard],
+		},
+		])
+	],
+	exports: [RouterModule],
+	providers: [JwtHelperService, AuthGuard, AdminGuard],
+	bootstrap: [AppComponent]
 })
 export class AppModule { 
-  constructor(private injector:Injector){}
+	constructor(private injector:Injector){}
 
-  ngDoBootstrap(){
-    const customNav=createCustomElement(NavComponent,{injector: this.injector});
-    customElements.define('app-nav',customNav);
-  }
+	ngDoBootstrap(){
+			const customNav=createCustomElement(NavComponent,{injector: this.injector});
+			customElements.define('app-nav',customNav);
+	}
 }
 
 export function getToken(){
-  return localStorage.getItem("currentUser");
+  	return localStorage.getItem("currentUser");
 }

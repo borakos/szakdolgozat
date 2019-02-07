@@ -1,6 +1,5 @@
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
 
 @Component({
   selector: 'app-nav',
@@ -11,10 +10,15 @@ export class NavComponent implements OnInit {
   role:string;
 
   constructor(private router:Router) {
-    this.role=localStorage.getItem('role');
+	this.role=localStorage.getItem('role');
   }
 
   ngOnInit() {
+    this.role=localStorage.getItem('role');
+  }
+
+  toUsers(){
+	  this.router.navigate(["users"]);
   }
 
   logOut(){

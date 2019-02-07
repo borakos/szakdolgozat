@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using TemplateHandler.Models;
+using TemplateHandler.Connection;
 
 namespace TemplateHandler.Controllers
 {
@@ -24,7 +25,7 @@ namespace TemplateHandler.Controllers
                 return BadRequest("Invalid user parameters.");
             }
             //Debug.WriteLine("\n\nusername:"+user.userName+", password:"+user.password+"\n\n");
-            ConnectionContext context = HttpContext.RequestServices.GetService(typeof(ConnectionContext)) as ConnectionContext;
+            UserContext context = ConnectionContext.Instace.createUserContext();
             if (context.validateUser(user.userName, user.password)) {
                 UserModel loggedInUser = context.getUserByUserName(user.userName);
                 SymmetricSecurityKey secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Startup.Configuration["Authentication:Key:SymmetricSecurityKey"]));

@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TemplateHandler.Models;
+using TemplateHandler.Connection;
 
 namespace TemplateHandler {
     public class Startup {
@@ -26,7 +27,10 @@ namespace TemplateHandler {
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services) {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-            services.Add(new ServiceDescriptor(typeof(ConnectionContext),new ConnectionContext(Configuration["ConnectionString:DefaultConnection"])));
+            //services.Add(new ServiceDescriptor(typeof(ConnectionContext),new ConnectionContext(Configuration["ConnectionString:DefaultConnection"])));
+            ConnectionContext context = ConnectionContext.Instace;
+            context.setConnectionString(Configuration["ConnectionString:DefaultConnection"]);
+            services.Add(new ServiceDescriptor(typeof(ConnectionContext), ConnectionContext.Instace));
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options => {
                 options.TokenValidationParameters = new TokenValidationParameters {

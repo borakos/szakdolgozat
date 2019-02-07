@@ -14,8 +14,9 @@ namespace TemplateHandler.Controllers{
         }*/
         [HttpGet("[action]")]
         public IEnumerable<TemplateFile> getTemplates() {
-            ConnectionContext context = HttpContext.RequestServices.GetService(typeof(ConnectionContext)) as ConnectionContext;
-            return context.getTemplateFiles();
+            //ConnectionContext context = HttpContext.RequestServices.GetService(typeof(ConnectionContext)) as ConnectionContext;
+            //return context.getTemplateFiles();
+            return null;
         }
     }
 }

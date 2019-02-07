@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TemplateHandler.Models;
+using TemplateHandler.Connection;
 
 namespace TemplateHandler.Controllers
 {
@@ -13,10 +14,10 @@ namespace TemplateHandler.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private ConnectionContext context;
+        private UserContext context;
 
         public UsersController() {
-            context = HttpContext.RequestServices.GetService(typeof(ConnectionContext)) as ConnectionContext;
+            context = ConnectionContext.Instace.createUserContext();
         }
 
         [HttpGet, Route("index"), Authorize(Roles ="admin")]
@@ -30,18 +31,18 @@ namespace TemplateHandler.Controllers
         }
 
         [HttpPost, Route("create"), Authorize(Roles = "admin")]
-        public int create([FromBody] UserModel user) {
-            return 1;
+        public void create([FromBody] UserModel user) {
+            context.createUser(user);
         }
 
         [HttpPut, Route("edit/{id}"), Authorize(Roles = "admin")]
-        public int edit(int id) {
-            return 1;
+        public void edit([FromBody] UserModel user,int id) {
+            context.updateUserByUser(user,id);
         }
 
         [HttpDelete, Route("delete/{id}"), Authorize(Roles = "admin")]
-        public int delete(int id) {
-            return 1;
+        public void delete(int id) {
+            context.deleteUser(id);
         }
     }
 }
