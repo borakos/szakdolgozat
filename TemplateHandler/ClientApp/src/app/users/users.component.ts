@@ -25,12 +25,10 @@ export class UsersComponent implements OnInit {
     public users: User[];
 
     constructor(private http: HttpClient) { 
-		console.log("Constructor");
 	}
 
     ngOnInit() {
 		this.getAllUser();
-		console.log("ngOnInit");
 	}
 	
 	getAllUser(){
@@ -50,19 +48,17 @@ export class UsersComponent implements OnInit {
 		});
 	}
 
-	createUser(form: NgForm) {
-		let credentials = JSON.stringify(form.value);
+	deleteUser(id){
 		let token = localStorage.getItem("jwt");
-		console.log(credentials);
-		this.http.post("https://localhost:44396/api/users/create", credentials, {
-			headers: new HttpHeaders({
-				"Authorization": "Bearer " + token,
-				"Content-Type": "application/json"
-			})
-		}).subscribe(response => {
+        this.http.delete("https://localhost:44396/api/users/delete/"+id, {
+            headers: new HttpHeaders({
+              "Authorization": "Bearer " + token,
+              "Content-Type": "application/json"
+            })
+		}).subscribe((response: User[] )=> {
 			this.getAllUser();
-		}, err => {
-			console.log(err);
+        }, err => {
+            console.log(err);
 		});
 	}
 }

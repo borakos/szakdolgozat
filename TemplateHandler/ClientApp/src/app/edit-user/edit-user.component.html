@@ -1,0 +1,55 @@
+<div>
+	<form *ngIf="operation=='create'" #createUserForm="ngForm" (ngSubmit)="createUser(createUserForm)">
+		<h2>Create User</h2>
+		<br/>
+		<div *ngIf="!unique" class="alert alert-danger col-sm-3">User Name is already in use.</div>
+		<label for="userName"><h5>User name</h5></label>
+		<input type="text" id="userName" name="userName" ngModel class="form-control col-sm-3" placeholder="User Name" required>
+		<label for="nativeName"><h5>Native Name</h5></label>
+		<input type="text" id="nativeName" name="nativeName" ngModel class="form-control col-sm-3" placeholder="Native Name" >
+		<label for="email"><h5>Email</h5></label>
+		<input type="email" id="email" name="email" ngModel class="form-control col-sm-3" placeholder="Email">
+		<div *ngIf="role=='admin'">
+			<label for="role"><h5>Role</h5></label>
+			<select id="role" name="role" ngModel="user" class="form-control col-sm-3" required>
+				<option value="user">user</option>
+				<option value="admin">admin</option>
+			</select>
+		</div>
+		<div *ngIf="!short" class="alert alert-danger col-sm-3">Passwords must be at least 8 character</div>
+		<label for="password"><h5>Password</h5></label>
+		<input type="password" id="password" name="password" ngModel class="form-control col-sm-3" placeholder="Password" required>
+		<div *ngIf="unmatch" class="alert alert-danger col-sm-3">Passwords doesn't match</div>
+		<label for="repassword"><h5>Password Again</h5></label>
+		<input type="password" id="repassword" name="repassword" ngModel class="form-control col-sm-3" placeholder="Password" required>
+		<button class="btn btn-success" type="submit">Create</button>
+	</form>
+		
+	<form *ngIf="user && operation=='edit'" #editUserForm="ngForm" (ngSubmit)="editUser(editUserForm)">
+		<h2>Edit User</h2>
+		<br/>
+		<div *ngIf="!unique" class="alert alert-danger col-sm-3">User Name is already in use.</div>
+		<label for="userName"><h5>User name</h5></label>
+		<input type="text" id="userName" name="userName" ngModel="{{ user.userName }}" class="form-control col-sm-3" placeholder="User Name" required>
+		<label for="nativeName"><h5>Native Name</h5></label>
+		<input type="text" id="nativeName" name="nativeName" ngModel="{{ user.nativeName }}" class="form-control col-sm-3" placeholder="Native Name" >
+		<label for="email"><h5>Email</h5></label>
+		<input type="email" id="email" name="email" ngModel="{{ user.email }}" class="form-control col-sm-3" placeholder="Email">
+		<div *ngIf="role=='admin'">
+			<label for="role"><h5>Role</h5></label>
+			<select id="role" name="role" ngModel="{{ user.role }}" class="form-control col-sm-3" required>
+				<option value="user">user</option>
+				<option value="admin">admin</option>
+			</select>
+		</div>
+		<div *ngIf="!short" class="alert alert-danger col-sm-3">Passwords must be at least 8 character</div>
+		<label for="password"><h5>Password</h5></label>
+		<input type="password" id="password" name="password" ngModel class="form-control col-sm-3" placeholder="Password" required>
+		<div *ngIf="unmatch" class="alert alert-danger col-sm-3">Passwords doesn't match</div>
+		<label for="repassword"><h5>Password Again</h5></label>
+		<input type="password" id="repassword" name="repassword" ngModel class="form-control col-sm-3" placeholder="Password" required>
+		<button class="btn btn-success" type="submit">Save</button>
+	</form>
+
+	<button class="btn btn-secondary" (click)="back()">Back</button>
+</div>

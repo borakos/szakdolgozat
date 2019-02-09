@@ -1,0 +1,17 @@
+@import "./../../styles.css";
+
+input,div{
+	margin-bottom: 10px;
+}
+
+label{
+	margin-bottom: 10px;
+}
+
+h5{
+	margin: 0;
+}
+
+button{
+	margin-top: 10px;
+}

@@ -15,9 +15,13 @@
 
 .main-back{
     background-color: #d9e3e8;
-    height: 100vh;
+	height: 100vh;
 }
 
 a{
     text-decoration: none;
+}
+
+h1, h2, h5, p, i{
+    color: #212529;
 }

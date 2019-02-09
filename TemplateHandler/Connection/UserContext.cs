@@ -43,9 +43,10 @@ namespace TemplateHandler.Connection {
             UserModel user = new UserModel();
             Boolean hasUser = false;
             MySqlConnection conn = getConnection();
-            string sql = "Select * from `users` where `id`='" + id + "'";
+            string sql = "Select * from `users` where `id`=@id";
             conn.Open();
             MySqlCommand cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", id);
             MySqlDataReader reader = cmd.ExecuteReader();
             if (reader.Read()) {
                 hasUser = true;
@@ -68,9 +69,10 @@ namespace TemplateHandler.Connection {
             UserModel user = new UserModel();
             Boolean hasUser = false;
             MySqlConnection conn = getConnection();
-            string sql = "Select * from `users` where `user_name`='" + userName + "'";
+            string sql = "Select * from `users` where `user_name`=@user_name";
             conn.Open();
             MySqlCommand cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@user_name", userName);
             MySqlDataReader reader = cmd.ExecuteReader();
             if (reader.Read()) {
                 hasUser = true;
@@ -92,9 +94,11 @@ namespace TemplateHandler.Connection {
         public Boolean validateUser(string userName, string password) {
             Boolean valid = false;
             MySqlConnection conn = getConnection();
-            string sql = "Select * from `users` where `user_name`='" + userName + "' And `password`='" + password + "'";
+            string sql = "Select * from `users` where `user_name`=@user_name And `password`=@password";
             conn.Open();
             MySqlCommand cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@user_name", userName);
+            cmd.Parameters.AddWithValue("@password", password);
             MySqlDataReader reader = cmd.ExecuteReader();
             if (reader.Read()) {
                 valid = true;
@@ -103,13 +107,31 @@ namespace TemplateHandler.Connection {
             return valid;
         }
 
-        public void updateUserByUser(UserModel newUser,int id) {
+        public void updateUser(UserModel newUser,int id, int cid) {
             UserModel user = getUserById(id);
             if (user!= null) {
+                UserModel controlUser = getUserById(cid);
                 MySqlConnection conn = getConnection();
-                string sql = "Update `users` Set `user_name`="+newUser.userName+"', `email`='"+newUser.email+"', `native_name`='"+newUser.nativeName+"', `password`='"+newUser.password+"' Where `id`='"+id+"'";
+                string sql= "Update `users` Set `user_name`=@user_name, `email`=@email, `native_name`=@native_name ";
+                if (newUser.password != "") {
+                    sql += ",`password`=@password ";
+                }
+                if(controlUser.role == UserModel.Role.admin) { 
+                    sql += ", `role`=@role ";
+                }
+                sql += "Where `id`=@id";
                 conn.Open();
                 MySqlCommand cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@user_name", newUser.userName);
+                cmd.Parameters.AddWithValue("@email", newUser.email);
+                cmd.Parameters.AddWithValue("@native_name", newUser.nativeName);
+                cmd.Parameters.AddWithValue("@id", id);
+                if(controlUser.role == UserModel.Role.admin) {
+                    cmd.Parameters.AddWithValue("@role", newUser.role.ToString());
+                }
+                if(newUser.password != "") {
+                    cmd.Parameters.AddWithValue("@password", newUser.password);
+                }
                 cmd.ExecuteNonQuery();
                 conn.Close();
             }
@@ -131,7 +153,7 @@ namespace TemplateHandler.Connection {
 
         public void deleteUser(int id) {
             MySqlConnection conn = getConnection();
-            string sql = "Delete from `users` Where `id`='@id'";
+            string sql = "Delete from `users` Where `id`=@id";
             conn.Open();
             MySqlCommand cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", id);

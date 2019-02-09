@@ -1,9 +1,5 @@
 @import "./../../styles.css";
 
-h1, h2, h5, p, i{
-    color: #212529;
-}
-
 thead{
 	background: #6992a5;
 }

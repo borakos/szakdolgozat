@@ -13,6 +13,8 @@ import { AuthGuard } from './guards/auth-services';
 import { AdminGuard } from './guards/admin-auth-services';
 import { NavComponent } from './nav/nav.component';
 import { createCustomElement } from '@angular/elements';
+import { EditUserComponent } from './edit-user/edit-user.component';
+import { ExecutionComponent } from './execution/execution.component';
 
 @NgModule({
 	declarations: [
@@ -20,7 +22,9 @@ import { createCustomElement } from '@angular/elements';
 		LoginComponent,
 		HomeComponent,
 		UsersComponent,
-		NavComponent
+		NavComponent,
+		EditUserComponent,
+		ExecutionComponent
 	],
 	imports: [
 		BrowserModule,
@@ -42,6 +46,11 @@ import { createCustomElement } from '@angular/elements';
 			path:'users',
 			component:UsersComponent,
 			canActivate: [AuthGuard, AdminGuard]
+		},
+		{
+			path:'user/:operation/:id',
+			component:EditUserComponent,
+			canActivate: [AuthGuard]
 		},
 		{
 			path:'',
