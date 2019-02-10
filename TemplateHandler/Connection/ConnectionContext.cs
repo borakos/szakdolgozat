@@ -31,5 +31,9 @@ namespace TemplateHandler.Connection {
         public UserContext createUserContext() {
             return new UserContext(connectionString);
         }
+
+        public TemplateFileContext createTemplateFileContext() {
+            return new TemplateFileContext(connectionString);
+        }
     }
 }

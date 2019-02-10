@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 using TemplateHandler.Models;
 using TemplateHandler.Connection;
 using System.Diagnostics;
+using System.IO;
+using System.Net.Http.Headers;
 
 namespace TemplateHandler.Controllers
 {
@@ -53,6 +55,25 @@ namespace TemplateHandler.Controllers
         [HttpDelete, Route("delete/{id}"), Authorize(Roles = "admin")]
         public void delete(int id) {
             context.deleteUser(id);
+        }
+
+        [HttpPost, Route("upload"), Authorize, DisableRequestSizeLimit]
+        public IActionResult upload() {
+            try {
+                IFormFile file = Request.Form.Files[0];
+                String pathToSave = Path.Combine(Directory.GetCurrentDirectory(), Path.Combine("Resources", "Templates"));
+                if (file.Length > 0) {
+                    String fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
+                    String fullPath = Path.Combine(pathToSave, fileName);
+                    FileStream stream = new FileStream(fullPath, FileMode.Create);
+                    file.CopyTo(stream);
+                    return Ok();
+                } else {
+                    return BadRequest();
+                }
+            } catch {
+                return StatusCode(500, "Internal server error");
+            }
         }
     }
 }

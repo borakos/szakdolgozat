@@ -2,21 +2,26 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TemplateHandler.Models;
+using TemplateHandler.Connection;
+using System.Diagnostics;
+using System.IO;
+using System.Net.Http.Headers;
 
 namespace TemplateHandler.Controllers{
-    [Route("api/[controller]")]
+    [Route("api/templatefiles")]
     public class TemplateFileController : Controller{
-        /*public IActionResult Index() {
-            ConnectionContext context = HttpContext.RequestServices.GetService(typeof(ConnectionContext)) as ConnectionContext;
-            return View(context.getTemplateFiles());
-        }*/
-        [HttpGet("[action]")]
-        public IEnumerable<TemplateFile> getTemplates() {
-            //ConnectionContext context = HttpContext.RequestServices.GetService(typeof(ConnectionContext)) as ConnectionContext;
-            //return context.getTemplateFiles();
-            return null;
+        private TemplateFileContext context;
+
+        public TemplateFileController() {
+            context = ConnectionContext.Instace.createTemplateFileContext();
+        }
+        [HttpGet, Route("index"), Authorize(Roles = "admin")]
+        public IEnumerable<TemplateFile> index() {
+            return context.getAllTemplate(); ;
         }
     }
 }

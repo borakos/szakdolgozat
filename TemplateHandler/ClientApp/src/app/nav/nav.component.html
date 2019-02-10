@@ -4,8 +4,8 @@
             <h2><i class="fa fa-user-o main-icons"></i> User</h2>
             <ul>
                 <li><a routerLink="/user/edit/{{user.id}}"><h5><i class="fa fa-id-card-o"></i> Personal settings</h5></a></li>
-                <li><a routerLink="/"><h5><i class="fa fa-file-word-o"></i> &nbsp;Handle templates</h5></a></li>
-                <li><a routerLink="/"><h5><i class="fa fa-file-code-o"></i> &nbsp;Executions</h5></a></li>
+                <li><a routerLink="/templates"><h5><i class="fa fa-file-word-o"></i> &nbsp;Handle templates</h5></a></li>
+                <li><a routerLink="/execution"><h5><i class="fa fa-file-code-o"></i> &nbsp;Executions</h5></a></li>
             </ul>
         </li> 
         <li *ngIf="user.role=='admin'">

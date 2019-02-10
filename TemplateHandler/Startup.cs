@@ -10,6 +10,9 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TemplateHandler.Models;
 using TemplateHandler.Connection;
+using Microsoft.Extensions.FileProviders;
+using System.IO;
+using Microsoft.AspNetCore.Http;
 
 namespace TemplateHandler {
     public class Startup {
@@ -70,6 +73,10 @@ namespace TemplateHandler {
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
+            app.UseStaticFiles(new StaticFileOptions() {
+                FileProvider=new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(),@"Resources")),
+                RequestPath=new PathString("/Resources")
+            });
 
             app.UseAuthentication();
             //CORS for https request

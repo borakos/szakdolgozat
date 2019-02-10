@@ -1,0 +1,37 @@
+<h2>Maintain Templates</h2>
+<br/>
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th>ID</th>
+			<th>Name</th>
+			<th>Path</th>
+			<th>Type</th>
+			<th>Group</th>
+			<th>Owner</th>
+			<th>Modify</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr *ngFor="let template of templates">
+			<td>{{ template.id }}</td>
+			<td>{{ template.name }}</td>
+			<td>{{ template.path }}</td>
+			<td>{{ template.type }}</td>
+			<td>{{ template.groupName }}</td>
+			<td>{{ template.ownerName }}</td>
+			<td><a class="btn btn-primary" routerLink="/">Edit</a><a class="btn btn-danger">Delete</a></td>
+		</tr>
+	</tbody>
+	<tfoot>
+		<tr>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td><a class="btn btn-success" (click)="getTemplates()">Create User</a></td>
+		</tr>
+	</tfoot>
+</table>

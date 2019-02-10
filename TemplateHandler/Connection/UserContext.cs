@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using TemplateHandler.Models;
 
 namespace TemplateHandler.Connection {
@@ -34,7 +32,6 @@ namespace TemplateHandler.Connection {
                     password = reader["password"].ToString(),
                     email = reader["email"].ToString(),
                 });
-                Debug.WriteLine("\n\nRole:"+list[list.Count-1].role);
             }
             conn.Close();
             return list;

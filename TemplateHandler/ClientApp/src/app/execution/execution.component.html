@@ -1,3 +1,5 @@
-<p>
-	execution works!
-</p>
+<h2>Execution</h2>
+<div class="col-md-3">
+	<input type="file" #file placeholder="Choose template" (change)="uploadTemplate(file.files)">
+	<button class="btn btn-primary" (click)="file.click()">Upload template</button>
+</div>
