@@ -27,10 +27,10 @@ namespace TemplateHandler.Connection {
                 list.Add(new UserModel {
                     id = Convert.ToInt32(reader["id"]),
                     userName = reader["user_name"].ToString(),
-                    nativeName = reader["native_name"].ToString(),
+                    nativeName = reader["native_name"] == DBNull.Value ? "" : reader["native_name"].ToString(),
                     role = ConnectionContext.parseEnum<UserModel.Role>(reader["role"].ToString()),
                     password = reader["password"].ToString(),
-                    email = reader["email"].ToString(),
+                    email = reader["email"] == DBNull.Value ? "" : reader["email"].ToString(),
                 });
             }
             conn.Close();
@@ -49,10 +49,10 @@ namespace TemplateHandler.Connection {
                 hasUser = true;
                 user.id = Convert.ToInt32(reader["id"]);
                 user.userName = reader["user_name"].ToString();
-                user.nativeName = reader["native_name"].ToString();
+                user.nativeName = reader["native_name"] == DBNull.Value ? "" : reader["native_name"].ToString();
                 user.role = ConnectionContext.parseEnum<UserModel.Role>(reader["role"].ToString());
                 user.password = reader["password"].ToString();
-                user.email = reader["email"].ToString();
+                user.email = reader["email"] == DBNull.Value ? "" : reader["email"].ToString();
             }
             conn.Close();
             if (hasUser) {
@@ -75,10 +75,10 @@ namespace TemplateHandler.Connection {
                 hasUser = true;
                 user.id = Convert.ToInt32(reader["id"]);
                 user.userName = reader["user_name"].ToString();
-                user.nativeName = reader["native_name"].ToString();
+                user.nativeName = reader["native_name"] == DBNull.Value ? "" : reader["native_name"].ToString();
                 user.role = ConnectionContext.parseEnum<UserModel.Role>(reader["role"].ToString());
                 user.password = reader["password"].ToString();
-                user.email = reader["email"].ToString();
+                user.email = reader["email"] == DBNull.Value ? "" : reader["email"].ToString();
             }
             conn.Close();
             if (hasUser) {
@@ -120,8 +120,17 @@ namespace TemplateHandler.Connection {
                 conn.Open();
                 MySqlCommand cmd = new MySqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@user_name", newUser.userName);
-                cmd.Parameters.AddWithValue("@email", newUser.email);
-                cmd.Parameters.AddWithValue("@native_name", newUser.nativeName);
+                if (newUser.nativeName == "") {
+                    cmd.Parameters.AddWithValue("@native_name", DBNull.Value);
+                } else {
+                    cmd.Parameters.AddWithValue("@native_name", newUser.nativeName);
+                }
+                Debug.Write("\n\n"+user.email+"\n\n");
+                if (newUser.email == "") {
+                    cmd.Parameters.AddWithValue("@email", DBNull.Value);
+                } else {
+                    cmd.Parameters.AddWithValue("@email", newUser.email);
+                }
                 cmd.Parameters.AddWithValue("@id", id);
                 if(controlUser.role == UserModel.Role.admin) {
                     cmd.Parameters.AddWithValue("@role", newUser.role.ToString());
@@ -141,9 +150,17 @@ namespace TemplateHandler.Connection {
             MySqlCommand cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@user_name", user.userName);
             cmd.Parameters.AddWithValue("@role", user.role.ToString());
-            cmd.Parameters.AddWithValue("@email", user.email);
-            cmd.Parameters.AddWithValue("@native_name", user.nativeName);
             cmd.Parameters.AddWithValue("@password", user.password);
+            if (user.nativeName == "") {
+                cmd.Parameters.AddWithValue("@native_name", DBNull.Value);
+            } else {
+                cmd.Parameters.AddWithValue("@native_name", user.nativeName);
+            }
+            if (user.email == "") {
+                cmd.Parameters.AddWithValue("@email", DBNull.Value);
+            } else {
+                cmd.Parameters.AddWithValue("@email", user.email);
+            }
             cmd.ExecuteNonQuery();
             conn.Close();
         }

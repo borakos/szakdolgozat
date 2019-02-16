@@ -1,0 +1,13 @@
+@import "./../../styles.css";
+
+.centered{
+	text-align: center;
+}
+
+select{
+	margin-bottom: 10px;
+}
+
+input{
+	margin-bottom: 10px;
+}

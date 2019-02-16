@@ -1,0 +1,76 @@
+<div>
+	<form *ngIf="operation=='create'" #createUserForm="ngForm" (ngSubmit)="createUser(createUserForm)">
+		<h2>Create User</h2>
+		<br/>
+		<div *ngIf="!unique" class="alert alert-danger col-sm-3">User Name is already in use.</div>
+		<label for="userName"><h5>User name</h5></label>
+		<input type="text" id="userName" name="userName" ngModel class="form-control col-sm-3" placeholder="User Name" required>
+		<label for="nativeName"><h5>Native Name</h5></label>
+		<input type="text" id="nativeName" name="nativeName" ngModel class="form-control col-sm-3" placeholder="Native Name" >
+		<label for="email"><h5>Email</h5></label>
+		<input type="email" id="email" name="email" ngModel class="form-control col-sm-3" placeholder="Email">
+		<div *ngIf="role=='admin'">
+			<label for="role"><h5>Role</h5></label>
+			<select id="role" name="role" ngModel="user" class="form-control col-sm-3" required>
+				<option value="user">user</option>
+				<option value="admin">admin</option>
+			</select>
+		</div>
+		<div *ngIf="!short" class="alert alert-danger col-sm-3">Passwords must be at least 8 character</div>
+		<label for="password"><h5>Password</h5></label>
+		<input type="password" id="password" name="password" ngModel class="form-control col-sm-3" placeholder="Password" required>
+		<div *ngIf="unmatch" class="alert alert-danger col-sm-3">Passwords doesn't match</div>
+		<label for="repassword"><h5>Password Again</h5></label>
+		<input type="password" id="repassword" name="repassword" ngModel class="form-control col-sm-3" placeholder="Password" required>
+		<button class="btn btn-success" type="submit">Create</button>
+	</form>
+	
+	<div *ngIf="groupData && operation=='edit'">
+		<form #editGroupForm="ngForm" (ngSubmit)="editGroup(editGroupForm)">
+			<h2>Edit Templates</h2>
+			<br/>
+			<label for="templates"><h5>Templates</h5></label>
+			<table class="table table-striped table-hover col-sm-5">
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>Type</th>
+						<th>Version</th>
+						<th>Delete</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr *ngFor="let template of groupData.templates">
+						<td>{{ template.name }}</td>
+						<td>{{ template.type }}</td>
+						<td>{{ template.version }}</td>
+						<td><a class="btn btn-danger" (click)="deleteGroup(0)">Delete</a></td>
+					</tr>
+				</tbody>
+			</table>
+			<label for="defaultVersion"><h5>Default Version</h5></label>
+			<select id="defaultVersion" name="defaultVersion" ngModel="{{ groupData.group.defaultVersion }}" class="form-control col-sm-2" required>
+				<option *ngFor="let template of groupData.templates" value="{{ template.version }}">{{ template.version }}</option>
+			</select>
+			<label for="groupName"><h5>Group name</h5></label>
+			<div *ngIf="!unique" class="alert alert-danger col-sm-3">Group Name is already in use.</div>
+			<input type="text" id="groupName" name="groupName" ngModel="{{ groupData.group.groupName }}" class="form-control col-sm-3" placeholder="Group Name" required>
+			<label for="description"><h5>Description</h5></label>
+			<input type="text" id="description" name="description" ngModel="{{ groupData.group.description }}" class="form-control col-sm-3" placeholder="Description" required>
+			<button *ngIf="!addTemplate" class="btn btn-primary" (click)="wantAdd()">Add template</button>
+			<button *ngIf="addTemplate" class="btn btn-primary" (click)="wantAdd()">Withdraw template</button>
+			<div *ngIf="addTemplate">
+				<label for="templateName"><h5>Template name</h5></label>
+				<input type="text" id="templateName" name="templateName" ngModel class="form-control col-sm-3" placeholder="Template Name" required>
+				<label for="type"><h5>Type</h5></label>
+				<select id="type" name="type" ngModel="word" class="form-control col-sm-3" required>
+					<option value="word">word</option>
+					<option value="excel">excel</option>
+				</select>
+				<button class="btn btn-primary" >Browser</button>
+			</div>
+			<button class="btn btn-success" type="submit">Save</button>
+		</form>
+	</div>
+	<button class="btn btn-secondary" (click)="back()">Back</button>
+</div>

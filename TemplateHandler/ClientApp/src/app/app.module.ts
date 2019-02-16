@@ -16,6 +16,7 @@ import { createCustomElement } from '@angular/elements';
 import { EditUserComponent } from './edit-user/edit-user.component';
 import { ExecutionComponent } from './execution/execution.component';
 import { TemplatesComponent } from './templates/templates.component';
+import { EditTemplatesComponent } from './edit-templates/edit-templates.component';
 
 @NgModule({
 	declarations: [
@@ -26,7 +27,8 @@ import { TemplatesComponent } from './templates/templates.component';
 		NavComponent,
 		EditUserComponent,
 		ExecutionComponent,
-		TemplatesComponent
+		TemplatesComponent,
+		EditTemplatesComponent
 	],
 	imports: [
 		BrowserModule,
@@ -57,6 +59,11 @@ import { TemplatesComponent } from './templates/templates.component';
 		{
 			path:'templates',
 			component:TemplatesComponent,
+			canActivate: [AuthGuard]
+		},
+		{
+			path:'templates/:operation/:id',
+			component:EditTemplatesComponent,
 			canActivate: [AuthGuard]
 		},
 		{

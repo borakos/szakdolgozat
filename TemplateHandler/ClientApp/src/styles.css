@@ -19,7 +19,7 @@
 }
 
 a{
-    text-decoration: none;
+	text-decoration: none;
 }
 
 h1, h2, h5, p, i{
@@ -28,4 +28,11 @@ h1, h2, h5, p, i{
 
 thead{
 	background: #6992a5;
+}
+
+button{
+	color: aliceblue;
+	margin-bottom: 10px;
+	margin-right: 10px;
+	margin-top: 10px;
 }

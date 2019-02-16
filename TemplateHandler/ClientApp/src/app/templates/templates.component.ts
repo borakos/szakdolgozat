@@ -18,6 +18,23 @@ interface TemplateFile {
 	groupName: string;
 }
 
+interface GrouppedTemplates {
+    id: number;
+    groupName: string;
+    description: string;
+    latestVersion: number;
+	fileNumber: number;
+	usedVersion: number;
+}
+
+interface User {
+    id: number;
+    userName: string;
+    nativeName: string;
+    email: string;
+	role: string;
+	password: string;
+}
 
 @Component({
 	selector: 'app-templates',
@@ -26,27 +43,25 @@ interface TemplateFile {
 })
 export class TemplatesComponent implements OnInit {
 
-	public templates: TemplateFile[];
+	groups: GrouppedTemplates[];
+	user: User;
 
 	constructor(private http:HttpClient) { }
 
 	ngOnInit() {
-		this.getAllUser();
+		this.user=JSON.parse(localStorage.getItem('user'));
+		this.getGrouppedTemplates(this.user.id);
 	}
 
-	getAllUser(){
+	getGrouppedTemplates(id){
 		let token = localStorage.getItem("jwt");
-        this.http.get("https://localhost:44396/api/templatefiles/index", {
+        this.http.get("https://localhost:44396/api/templatefiles/index/"+id, {
             headers: new HttpHeaders({
               "Authorization": "Bearer " + token,
               "Content-Type": "application/json"
             })
-		}).subscribe((response: TemplateFile[] )=> {
-			this.templates=response;
-			console.log(response);
-			for(let i=0;i<response.length;i++){
-				this.templates[i].type=Type[response[i].type];
-			}
+		}).subscribe((response: GrouppedTemplates[] )=> {
+			this.groups=response;
         }, err => {
             console.log(err);
 		});
