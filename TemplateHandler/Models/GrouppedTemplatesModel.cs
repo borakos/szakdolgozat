@@ -11,5 +11,6 @@ namespace TemplateHandler.Models {
         public int latestVersion { get; set; }
         public int fileNumber { get; set; }
         public int defaultVersion { get; set; }
+        public int ownerId { get; set; }
     }
 }

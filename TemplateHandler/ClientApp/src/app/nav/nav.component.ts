@@ -1,13 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import {User} from './../services/interfaces';
 
-interface User {
-	id: number;
-	userName: string;
-	nativeName: string;
-	email: string;
-	role: string;
-}
 
 @Component({
 	selector: 'app-nav',

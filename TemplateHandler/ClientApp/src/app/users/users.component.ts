@@ -1,19 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { NgForm } from '@angular/forms';
+import {User, Role} from './../services/interfaces';
 
-enum Role{
-	admin=0,
-	user,
-}
-
-interface User {
-    id: number;
-    userName: string;
-    nativeName: string;
-    email: string;
-    role: string;
-}
 
 @Component({
     selector: 'app-users',

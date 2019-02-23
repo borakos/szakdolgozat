@@ -44,7 +44,7 @@ namespace TemplateHandler.Connection {
         public List<GrouppedTemplatesModel> getGroupedTemplate(int id) {
             List<GrouppedTemplatesModel> list = new List<GrouppedTemplatesModel>();
             MySqlConnection conn = getConnection();
-            string sql = "Select tg.id ,tg.name group_name, tg.description, tg.latest_version, tg.default_version, Count(tg.id) count from `template_groups` tg JOIN template_files tf on tf.group_id = tg.id Join `users` u on tf.owner_id=u.id Where u.id=@id Group by tg.id";
+            string sql = "Select tg.id ,tg.name group_name, tg.description, tg.latest_version, tg.default_version, tg.owner_id, Count(tf.id) count from `template_groups` tg Left Join `template_files` tf on tf.group_id=tg.id Join `users` u on tg.owner_id=u.id Where u.id=@id Group by tg.id";
             conn.Open();
             MySqlCommand cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", id);
@@ -56,7 +56,8 @@ namespace TemplateHandler.Connection {
                     description = reader["description"].ToString(),
                     latestVersion = Convert.ToInt32(reader["latest_version"]),
                     fileNumber = Convert.ToInt32(reader["count"]),
-                    defaultVersion = Convert.ToInt32(reader["default_version"])
+                    defaultVersion = Convert.ToInt32(reader["default_version"]),
+                    ownerId = Convert.ToInt32(reader["owner_id"]),
                 });
             }
             conn.Close();
@@ -104,6 +105,7 @@ namespace TemplateHandler.Connection {
                     description = reader["description"].ToString(),
                     latestVersion = Convert.ToInt32(reader["latest_version"]),
                     defaultVersion = Convert.ToInt32(reader["default_version"]),
+                    ownerId= Convert.ToInt32(reader["owner_id"]),
                     fileNumber = 0
                 });
             }
@@ -125,6 +127,27 @@ namespace TemplateHandler.Connection {
             conn.Close();
         }
 
+        public void setMaxVersionDefault(int id) {
+            MySqlConnection conn = getConnection();
+            string sql = "Select version from template_groups tg join template_files tf on tg.id=tf.group_id where tg.id=@id order by version desc limit 1";
+            int version = 0;
+            conn.Open();
+            MySqlCommand cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", id);
+            MySqlDataReader reader = cmd.ExecuteReader();
+            if (reader.Read()) {
+                version = Convert.ToInt32(reader["version"]);
+            }
+            conn.Close();
+            sql = "Update `template_groups` Set `default_version`=@defaultVersion Where `id`=@id";
+            conn.Open();
+            cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", id);
+            cmd.Parameters.AddWithValue("@defaultVersion", version);
+            cmd.ExecuteNonQuery();
+            conn.Close();
+        }
+
         public void createTemplate(TemplateFileModel file) {
             MySqlConnection conn = getConnection();
             string sql = "Insert into `template_files` (`name`,`path`,`local_name`,`type`,`owner_id`,`group_id`,`version`) Values(@name,@path,@localName,@type,@ownerId,@groupId,@version)";
@@ -141,10 +164,44 @@ namespace TemplateHandler.Connection {
             conn.Close();
         }
 
+        public void removeTemplate(int id) {
+            MySqlConnection conn = getConnection();
+            string sql = "Delete from template_files Where id=@id";
+            conn.Open();
+            MySqlCommand cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", id);
+            cmd.ExecuteNonQuery();
+            conn.Close();
+        }
+
+        public void deleteGroup(int id) {
+            MySqlConnection conn = getConnection();
+            string sql = "Delete from template_groups Where id=@id";
+            conn.Open();
+            MySqlCommand cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", id);
+            cmd.ExecuteNonQuery();
+            conn.Close();
+        }
+
+        public void createGroup(GrouppedTemplatesModel group) {
+            MySqlConnection conn = getConnection();
+            string sql = "Insert into `template_groups` (`name`,`description`,`latest_version`,`default_version`,`owner_id`) Values(@name,@description,@latestVersion,@defaultVersion,@ownerId)";
+            conn.Open();
+            MySqlCommand cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@name", group.groupName);
+            cmd.Parameters.AddWithValue("@description", group.description);
+            cmd.Parameters.AddWithValue("@latestVersion", 0);
+            cmd.Parameters.AddWithValue("@defaultVersion", 0);
+            cmd.Parameters.AddWithValue("@ownerId", group.ownerId);
+            cmd.ExecuteNonQuery();
+            conn.Close();
+        }
+
         public Boolean tesztGroupName(string groupName, int oid) {
             int count=1;
             MySqlConnection conn = getConnection();
-            string sql = "Select Count(*) count from `template_groups` tg join `template_files` tf on tg.id=tf.group_id where tg.name=@groupName And `owner_id`=@ownerId";
+            string sql = "Select Count(*) count from `template_groups`  where name=@groupName And `owner_id`=@ownerId";
             conn.Open();
             MySqlCommand cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@groupName", groupName);

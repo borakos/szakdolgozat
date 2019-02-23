@@ -1,29 +1,16 @@
 <div>
-	<form *ngIf="operation=='create'" #createUserForm="ngForm" (ngSubmit)="createUser(createUserForm)">
-		<h2>Create User</h2>
-		<br/>
-		<div *ngIf="!unique" class="alert alert-danger col-sm-3">User Name is already in use.</div>
-		<label for="userName"><h5>User name</h5></label>
-		<input type="text" id="userName" name="userName" ngModel class="form-control col-sm-3" placeholder="User Name" required>
-		<label for="nativeName"><h5>Native Name</h5></label>
-		<input type="text" id="nativeName" name="nativeName" ngModel class="form-control col-sm-3" placeholder="Native Name" >
-		<label for="email"><h5>Email</h5></label>
-		<input type="email" id="email" name="email" ngModel class="form-control col-sm-3" placeholder="Email">
-		<div *ngIf="role=='admin'">
-			<label for="role"><h5>Role</h5></label>
-			<select id="role" name="role" ngModel="user" class="form-control col-sm-3" required>
-				<option value="user">user</option>
-				<option value="admin">admin</option>
-			</select>
-		</div>
-		<div *ngIf="!short" class="alert alert-danger col-sm-3">Passwords must be at least 8 character</div>
-		<label for="password"><h5>Password</h5></label>
-		<input type="password" id="password" name="password" ngModel class="form-control col-sm-3" placeholder="Password" required>
-		<div *ngIf="unmatch" class="alert alert-danger col-sm-3">Passwords doesn't match</div>
-		<label for="repassword"><h5>Password Again</h5></label>
-		<input type="password" id="repassword" name="repassword" ngModel class="form-control col-sm-3" placeholder="Password" required>
-		<button class="btn btn-success" type="submit">Create</button>
-	</form>
+	<div *ngIf="operation=='create'">
+		<form #createGroupForm="ngForm" (ngSubmit)="createGroup(createGroupForm)">
+			<h2>Create Templates</h2>
+			<br/>
+			<label for="groupName"><h5>Group name</h5></label>
+			<div *ngIf="!unique" class="alert alert-danger col-sm-3">Group Name is already in use.</div>
+			<input type="text" id="groupName" name="groupName" ngModel class="form-control col-sm-3" placeholder="Group Name" required>
+			<label for="description"><h5>Description</h5></label>
+			<input type="text" id="description" name="description" ngModel class="form-control col-sm-3" placeholder="Description" required>
+			<button class="btn btn-success" type="submit">Save</button>
+		</form>
+	</div>
 	
 	<div *ngIf="groupData && operation=='edit'">
 		<form #editGroupForm="ngForm" (ngSubmit)="editGroup(editGroupForm)">
@@ -44,7 +31,7 @@
 						<td>{{ template.name }}</td>
 						<td>{{ template.type }}</td>
 						<td>{{ template.version }}</td>
-						<td><a class="btn btn-danger" (click)="deleteGroup(0)">Delete</a></td>
+						<td><a class="btn btn-danger" (click)="removeTemplate(template.id,template.version)">Delete</a></td>
 					</tr>
 				</tbody>
 			</table>
@@ -66,8 +53,9 @@
 				<select id="type" name="type" ngModel="word" class="form-control col-sm-3" required>
 					<option value="word">word</option>
 					<option value="excel">excel</option>
-				</select>
-				<button class="btn btn-primary" >Browser</button>
+				</select>	
+				<input type="file" id="file" #file placeholder="Choose template">
+				<a class="btn btn-primary" (click)="file.click()">Upload template</a>
 			</div>
 			<button class="btn btn-success" type="submit">Save</button>
 		</form>

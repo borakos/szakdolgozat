@@ -3,30 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { NgForm } from '@angular/forms';
 import { Location } from '@angular/common';
-
-enum Role{
-	admin=0,
-	user,
-}
-
-interface User {
-    id: number;
-    userName: string;
-    nativeName: string;
-    email: string;
-	role: string;
-	password: string;
-}
-
-interface UserForm {
-    id: number;
-    userName: string;
-    nativeName: string;
-    email: string;
-	role: string;
-	password: string;
-	repassword: string;
-}
+import {User, UserForm, Role} from './../services/interfaces';
 
 @Component({
 	selector: 'app-edit-user',

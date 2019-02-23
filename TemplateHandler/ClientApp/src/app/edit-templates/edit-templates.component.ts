@@ -3,48 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { NgForm } from '@angular/forms';
 import { Location } from '@angular/common';
-import { from } from 'rxjs';
-
-enum Type{
-	word=0,
-	excel,
-}
-
-interface TemplateFile {
-    id: number;
-    name: string;
-    path: string;
-    localName: string;
-	type: string;
-	ownerId: number;
-	groupId: number;
-	ownerName: string;
-	groupName: string;
-	version: number;
-}
-
-interface User {
-    id: number;
-    userName: string;
-    nativeName: string;
-    email: string;
-	role: string;
-	password: string;
-}
-
-interface Group{
-	id: number;
-	groupName: string;
-	description: string;
-	latestVersion: number;
-	defaultVersion: number;
-	fileNumber: number;
-}
-
-interface GroupData{
-	templates: TemplateFile[];
-	group: Group;
-}
+import { User, TemplateFile, GroupData, Type, Group} from './../services/interfaces';
 
 @Component({
   selector: 'app-edit-templates',
@@ -106,7 +65,7 @@ export class EditTemplatesComponent implements OnInit {
 			this.unique=true;
 		}
 		console.log("unique:" +this.unique);
-		if(this.unique){
+		//if(this.unique){
 			let link="https://localhost:44396/api/templatefiles/edit";
 			let groupData = {} as GroupData;
 			groupData.group=this.groupData.group;
@@ -128,7 +87,6 @@ export class EditTemplatesComponent implements OnInit {
 			}
 			let credentials= JSON.stringify(groupData);
 			let token = localStorage.getItem("jwt");
-			console.log(groupData);
 			this.http.put(link,credentials, {
 				headers: new HttpHeaders({
 				"Authorization": "Bearer " + token,
@@ -137,6 +95,69 @@ export class EditTemplatesComponent implements OnInit {
 			}).subscribe(response=> {
 				this.getTemplates(this.groupId);
 			}, err => {
+				console.log(err);
+			});
+		//}
+	}
+
+	createGroup(form:NgForm){
+		let data={} as Group;
+		data.groupName=form.value.groupName;
+		data.description=form.value.description;
+		data.ownerId=this.user.id;
+		if(this.nameTeszt(data.groupName)){
+			this.unique=true;
+		}else{
+			this.unique=false;
+		}
+		//if(this.unique){
+			console.log(data);
+			let credentials= JSON.stringify(data);
+			let token = localStorage.getItem("jwt");
+			this.http.post("https://localhost:44396/api/templatefiles/create",credentials, {
+				headers: new HttpHeaders({
+				"Authorization": "Bearer " + token,
+				"Content-Type": "application/json"
+				})
+			}).subscribe(response=> {
+				this.back();
+			}, err => {
+				console.log(err);
+			});
+		//}
+	}
+
+	removeTemplate(id,version){
+		let setVersion=false;
+		if(this.groupData.group.defaultVersion==version){
+			setVersion=true;
+		}
+		let token = localStorage.getItem("jwt");
+        this.http.delete("https://localhost:44396/api/templatefiles/removetemplate/"+id+"/"+this.groupData.group.id+"/"+setVersion, {
+            headers: new HttpHeaders({
+              "Authorization": "Bearer " + token,
+              "Content-Type": "application/json"
+            })
+		}).subscribe((response: Boolean)=> {
+			this.getTemplates(this.groupId);
+        }, err => {
+			console.log(err);
+		});
+	}
+
+	uploadTemplate(files){
+		if(files.length != 0){
+			let template= <File>files[0];
+			let formData= new FormData();
+			formData.append('file',template, template.name);
+			let token = localStorage.getItem("jwt");
+			this.http.post('https://localhost:44396/api/templatefiles/upload',formData,{
+				headers: new HttpHeaders({
+					"Authorization": "Bearer " + token
+				})
+			}).subscribe(result =>{
+
+			},err =>{
 				console.log(err);
 			});
 		}

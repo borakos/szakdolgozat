@@ -34,8 +34,8 @@ namespace TemplateHandler.Controllers{
         }
 
         [HttpPost, Route("create"), Authorize]
-        public void create([FromBody] UserModel user) {
-            //context.createUser(user);
+        public void create([FromBody] GrouppedTemplatesModel group) {
+            context.createGroup(group);
         }
 
         [HttpPut, Route("edit/{method}"), Authorize]
@@ -46,9 +46,9 @@ namespace TemplateHandler.Controllers{
             }
         }
 
-        [HttpDelete, Route("delete/{id}"), Authorize]
+        [HttpDelete, Route("deletegroup/{id}"), Authorize]
         public void delete(int id) {
-            //context.deleteUser(id);
+            context.deleteGroup(id);
         }
 
         [HttpGet, Route("detailstemplates/{id}"), Authorize(Roles = "admin")]
@@ -64,6 +64,33 @@ namespace TemplateHandler.Controllers{
         [HttpGet, Route("teszt/{groupName}/{oid}"), Authorize]
         public Boolean teszt(string groupName, int oid) {
             return context.tesztGroupName(groupName, oid);
+        }
+
+        [HttpDelete, Route("removetemplate/{id}/{gid}/{set}"), Authorize]
+        public void removeTemplate(int id, int gid, bool set) {
+            context.removeTemplate(id);
+            if (set) {
+                context.setMaxVersionDefault(gid);
+            }
+        }
+
+        [HttpPost, Route("upload"), Authorize, DisableRequestSizeLimit]
+        public IActionResult upload() {
+            try {
+                IFormFile file = Request.Form.Files[0];
+                String pathToSave = Path.Combine(Directory.GetCurrentDirectory(), Path.Combine("Resources", "Templates"));
+                if (file.Length > 0) {
+                    String fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
+                    String fullPath = Path.Combine(pathToSave, fileName);
+                    FileStream stream = new FileStream(fullPath, FileMode.Create);
+                    file.CopyTo(stream);
+                    return Ok();
+                } else {
+                    return BadRequest();
+                }
+            } catch {
+                return StatusCode(500, "Internal server error");
+            }
         }
     }
 }

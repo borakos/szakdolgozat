@@ -3,14 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { NgForm } from '@angular/forms';
 import { JwtHelperService } from '@auth0/angular-jwt';
-
-interface User {
-	id: number;
-	userName: string;
-	nativeName: string;
-	email: string;
-	role: string;
-}
+import {User} from './../services/interfaces';
 
 @Component({
 	selector: 'app-login',

@@ -1,40 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-
-enum Type{
-	word=0,
-	excel,
-}
-
-interface TemplateFile {
-    id: number;
-    name: string;
-    path: string;
-    localName: string;
-	type: string;
-	ownerId: number;
-	groupId: number;
-	ownerName: string;
-	groupName: string;
-}
-
-interface GrouppedTemplates {
-    id: number;
-    groupName: string;
-    description: string;
-    latestVersion: number;
-	fileNumber: number;
-	usedVersion: number;
-}
-
-interface User {
-    id: number;
-    userName: string;
-    nativeName: string;
-    email: string;
-	role: string;
-	password: string;
-}
+import {User, GrouppedTemplates} from './../services/interfaces';
 
 @Component({
 	selector: 'app-templates',
@@ -62,6 +28,20 @@ export class TemplatesComponent implements OnInit {
             })
 		}).subscribe((response: GrouppedTemplates[] )=> {
 			this.groups=response;
+        }, err => {
+            console.log(err);
+		});
+	}
+
+	deleteGroup(id){
+		let token = localStorage.getItem("jwt");
+        this.http.delete("https://localhost:44396/api/templatefiles/deletegroup/"+id, {
+            headers: new HttpHeaders({
+              "Authorization": "Bearer " + token,
+              "Content-Type": "application/json"
+            })
+		}).subscribe((response: GrouppedTemplates[] )=> {
+			this.getGrouppedTemplates(this.user.id);
         }, err => {
             console.log(err);
 		});

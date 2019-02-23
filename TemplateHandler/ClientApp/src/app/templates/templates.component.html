@@ -6,7 +6,7 @@
 			<th>Name</th>
 			<th>Description</th>
 			<th>Latest Version</th>
-			<th>Version in use</th>
+			<th>Default Version</th>
 			<th>Number of files</th>
 			<th>Modify</th>
 		</tr>
@@ -16,9 +16,9 @@
 			<td>{{ group.groupName }}</td>
 			<td>{{ group.description }}</td>
 			<td>{{ group.latestVersion }}</td>
-			<td>{{ group.usedVersion }}</td>
+			<td>{{ group.defaultVersion }}</td>
 			<td>{{ group.fileNumber }}</td>
-			<td><a class="btn btn-primary" routerLink="/templates/edit/{{group.id}}">Edit</a><a class="btn btn-danger" (click)="deleteGroup(group.id)">Delete</a></td>
+			<td><a class="btn btn-primary" routerLink="/templates/edit/{{group.id}}">Edit</a><button class="btn btn-danger" (click)="deleteGroup(group.id)">Delete</button></td>
 		</tr>
 	</tbody>
 	<tfoot>
@@ -28,7 +28,7 @@
 			<td></td>
 			<td></td>
 			<td></td>
-			<td><a class="btn btn-success" routerLink="/templates/create/0">Create User</a></td>
+			<td><a class="btn btn-success" routerLink="/templates/create/0">Create Templates</a></td>
 		</tr>
 	</tfoot>
 </table>

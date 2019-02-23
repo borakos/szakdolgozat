@@ -11,3 +11,7 @@ select{
 input{
 	margin-bottom: 10px;
 }
+
+#file{
+	display: none;
+}

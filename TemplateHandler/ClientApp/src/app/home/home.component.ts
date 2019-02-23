@@ -1,14 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { Router } from '@angular/router';
-
-interface User {
-	id: number;
-	userName: string;
-	nativeName: string;
-	email: string;
-	role: string;
-}
+import {User} from './../services/interfaces';
 
 @Component({
 	selector: 'app-home',

@@ -56,24 +56,5 @@ namespace TemplateHandler.Controllers
         public void delete(int id) {
             context.deleteUser(id);
         }
-
-        [HttpPost, Route("upload"), Authorize, DisableRequestSizeLimit]
-        public IActionResult upload() {
-            try {
-                IFormFile file = Request.Form.Files[0];
-                String pathToSave = Path.Combine(Directory.GetCurrentDirectory(), Path.Combine("Resources", "Templates"));
-                if (file.Length > 0) {
-                    String fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
-                    String fullPath = Path.Combine(pathToSave, fileName);
-                    FileStream stream = new FileStream(fullPath, FileMode.Create);
-                    file.CopyTo(stream);
-                    return Ok();
-                } else {
-                    return BadRequest();
-                }
-            } catch {
-                return StatusCode(500, "Internal server error");
-            }
-        }
     }
 }
