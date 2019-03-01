@@ -25,19 +25,19 @@
 		<button class="btn btn-success" type="submit">Create</button>
 	</form>
 		
-	<form *ngIf="user && operation=='edit'" #editUserForm="ngForm" (ngSubmit)="editUser(editUserForm)">
+	<form *ngIf="operation=='edit' && (user | async) as userF" #editUserForm="ngForm" (ngSubmit)="editUser(editUserForm)">
 		<h2>Edit User</h2>
 		<br/>
 		<div *ngIf="!unique" class="alert alert-danger col-sm-3">User Name is already in use.</div>
 		<label for="userName"><h5>User name</h5></label>
-		<input type="text" id="userName" name="userName" ngModel="{{ user.userName }}" class="form-control col-sm-3" placeholder="User Name" required>
+		<input type="text" id="userName" name="userName" ngModel="{{ userF.userName }}" class="form-control col-sm-3" placeholder="User Name" required>
 		<label for="nativeName"><h5>Native Name</h5></label>
-		<input type="text" id="nativeName" name="nativeName" ngModel="{{ user.nativeName }}" class="form-control col-sm-3" placeholder="Native Name" >
+		<input type="text" id="nativeName" name="nativeName" ngModel="{{ userF.nativeName }}" class="form-control col-sm-3" placeholder="Native Name" >
 		<label for="email"><h5>Email</h5></label>
-		<input type="email" id="email" name="email" ngModel="{{ user.email }}" class="form-control col-sm-3" placeholder="Email">
+		<input type="email" id="email" name="email" ngModel="{{ userF.email }}" class="form-control col-sm-3" placeholder="Email">
 		<div *ngIf="role=='admin'">
 			<label for="role"><h5>Role</h5></label>
-			<select id="role" name="role" ngModel="{{ user.role }}" class="form-control col-sm-3" required>
+			<select id="role" name="role" ngModel="{{ getRoleName(userF.role) }}" class="form-control col-sm-3" required>
 				<option value="user">user</option>
 				<option value="admin">admin</option>
 			</select>

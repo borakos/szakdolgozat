@@ -53,8 +53,8 @@ namespace TemplateHandler.Controllers
         }
 
         [HttpDelete, Route("delete/{id}"), Authorize(Roles = "admin")]
-        public void delete(int id) {
-            context.deleteUser(id);
+        public Boolean delete(int id) {
+            return context.deleteUser(id);
         }
     }
 }

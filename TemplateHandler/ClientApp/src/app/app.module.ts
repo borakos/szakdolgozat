@@ -7,7 +7,7 @@ import { RouterModule } from '@angular/router';
 import { UsersComponent } from './users/users.component';
 import { FormsModule } from '@angular/forms';
 import { JwtHelperService, JwtModule } from '@auth0/angular-jwt';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthGuard } from './guards/auth-services';
 import { AdminGuard } from './guards/admin-auth-services';
 import { NavComponent } from './nav/nav.component';
@@ -16,6 +16,7 @@ import { EditUserComponent } from './edit-user/edit-user.component';
 import { ExecutionComponent } from './execution/execution.component';
 import { TemplatesComponent } from './templates/templates.component';
 import { EditTemplatesComponent } from './edit-templates/edit-templates.component';
+import { TokenInterceptor } from '../interceptors/tokenservice';
 
 @NgModule({
 	declarations: [
@@ -78,7 +79,14 @@ import { EditTemplatesComponent } from './edit-templates/edit-templates.componen
 		])
 	],
 	exports: [RouterModule],
-	providers: [JwtHelperService, AuthGuard, AdminGuard],
+	providers: [JwtHelperService,
+				AuthGuard,
+				AdminGuard,
+				{	
+					provide:HTTP_INTERCEPTORS,
+					useClass:TokenInterceptor,
+					multi:true
+				}],
 	bootstrap: [AppComponent]
 })
 export class AppModule { 

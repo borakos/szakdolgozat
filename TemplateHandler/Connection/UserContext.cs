@@ -165,7 +165,7 @@ namespace TemplateHandler.Connection {
             conn.Close();
         }
 
-        public void deleteUser(int id) {
+        public Boolean deleteUser(int id) {
             MySqlConnection conn = getConnection();
             string sql = "Delete from `users` Where `id`=@id";
             conn.Open();
@@ -173,6 +173,7 @@ namespace TemplateHandler.Connection {
             cmd.Parameters.AddWithValue("@id", id);
             cmd.ExecuteNonQuery();
             conn.Close();
+            return true;
         }
     }
 }

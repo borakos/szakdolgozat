@@ -12,12 +12,12 @@
 		</tr>
 	</thead>
 	<tbody>
-		<tr *ngFor="let user of users">
+		<tr *ngFor="let user of users | async">
 			<td>{{ user.id }}</td>
 			<td>{{ user.userName }}</td>
 			<td>{{ user.nativeName }}</td>
 			<td>{{ user.email }}</td>
-			<td>{{ user.role }}</td>
+			<td>{{ getRoleName(user.role) }}</td>
 			<td><a class="btn btn-primary" routerLink="/user/edit/{{user.id}}">Edit</a><a class="btn btn-danger" (click)="deleteUser(user.id)">Delete</a></td>
 		</tr>
 	</tbody>

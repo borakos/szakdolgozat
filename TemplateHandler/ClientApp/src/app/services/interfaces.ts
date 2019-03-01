@@ -10,6 +10,12 @@ export enum Role{
 	user,
 }
 
+//Functions-------------------------------------------------------------------------------------------------
+
+export function getRoleName(role:number):string{
+	return Role[role];
+}
+
 //Interfaces------------------------------------------------------------------------------------------------
 
 export interface TemplateFile {
