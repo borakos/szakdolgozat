@@ -12,7 +12,7 @@
 		</tr>
 	</thead>
 	<tbody>
-		<tr *ngFor="let group of groups">
+		<tr *ngFor="let group of groups | async">
 			<td>{{ group.groupName }}</td>
 			<td>{{ group.description }}</td>
 			<td>{{ group.latestVersion }}</td>

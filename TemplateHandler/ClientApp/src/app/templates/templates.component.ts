@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import {User, GrouppedTemplates} from './../services/interfaces';
+import { User, GrouppedTemplates } from './../services/interfaces';
+import { TemplateService } from './../services/templateservice';
+import { Observable } from 'rxjs';
 
 @Component({
 	selector: 'app-templates',
@@ -9,8 +11,9 @@ import {User, GrouppedTemplates} from './../services/interfaces';
 })
 export class TemplatesComponent implements OnInit {
 
-	groups: GrouppedTemplates[];
+	groups: Observable<GrouppedTemplates[]>;
 	user: User;
+	templateService= new TemplateService(this.http);
 
 	constructor(private http:HttpClient) { }
 
@@ -20,27 +23,15 @@ export class TemplatesComponent implements OnInit {
 	}
 
 	getGrouppedTemplates(id){
-		let token = localStorage.getItem("jwt");
-        this.http.get("https://localhost:44396/api/templatefiles/index/"+id, {
-            headers: new HttpHeaders({
-              "Authorization": "Bearer " + token,
-              "Content-Type": "application/json"
-            })
-		}).subscribe((response: GrouppedTemplates[] )=> {
-			this.groups=response;
-        }, err => {
+		this.groups=this.templateService.getGrouppedTemplates(id);
+        this.groups.subscribe((response)=> {}, err => {
             console.log(err);
 		});
 	}
 
 	deleteGroup(id){
-		let token = localStorage.getItem("jwt");
-        this.http.delete("https://localhost:44396/api/templatefiles/deletegroup/"+id, {
-            headers: new HttpHeaders({
-              "Authorization": "Bearer " + token,
-              "Content-Type": "application/json"
-            })
-		}).subscribe((response: GrouppedTemplates[] )=> {
+		let deletion = this.templateService.deleteGroup(id);
+        deletion.subscribe((response)=> {
 			this.getGrouppedTemplates(this.user.id);
         }, err => {
             console.log(err);

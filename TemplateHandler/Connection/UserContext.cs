@@ -104,7 +104,7 @@ namespace TemplateHandler.Connection {
             return valid;
         }
 
-        public void updateUser(UserModel newUser,int id, int cid) {
+        public Boolean updateUser(UserModel newUser,int id, int cid) {
             UserModel user = getUserById(id);
             if (user!= null) {
                 UserModel controlUser = getUserById(cid);
@@ -140,10 +140,12 @@ namespace TemplateHandler.Connection {
                 }
                 cmd.ExecuteNonQuery();
                 conn.Close();
+                return true;
             }
+            return false;
         }
 
-        public void createUser(UserModel user) {
+        public Boolean createUser(UserModel user) {
             MySqlConnection conn = getConnection();
             string sql = "Insert into `users`(`user_name`,`role`,`email`,`native_name`,`password`) Values(@user_name,@role,@email,@native_name,@password)";
             conn.Open();
@@ -163,6 +165,7 @@ namespace TemplateHandler.Connection {
             }
             cmd.ExecuteNonQuery();
             conn.Close();
+            return true;
         }
 
         public Boolean deleteUser(int id) {

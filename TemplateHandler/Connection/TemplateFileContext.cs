@@ -154,7 +154,7 @@ namespace TemplateHandler.Connection {
             conn.Open();
             MySqlCommand cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@name",file.name);
-            cmd.Parameters.AddWithValue("@path","Resource/Templates");
+            cmd.Parameters.AddWithValue("@path","Resource/Templates/"+ file.ownerId+"/"+ file.groupId);
             cmd.Parameters.AddWithValue("@localName",file.ownerId+"_"+file.groupId+"_"+file.version+"_"+file.name);
             cmd.Parameters.AddWithValue("@type",file.type.ToString());
             cmd.Parameters.AddWithValue("@ownerId",file.ownerId);

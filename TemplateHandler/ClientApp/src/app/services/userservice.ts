@@ -43,6 +43,7 @@ export class UserService{
 		});
 	}
 
+	//Components: edit-user
 	updateUser(user, id, controlUser):Observable<boolean>{
 		console.log(user);
 		delete user.repassword;
@@ -53,6 +54,7 @@ export class UserService{
 		});
 	}
 
+	//Components: edit-user
 	createUser(data):Observable<boolean>{
 		delete data.repassword;
 		data.role=Role[data.role];

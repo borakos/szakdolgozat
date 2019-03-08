@@ -43,13 +43,13 @@ namespace TemplateHandler.Controllers
         }
 
         [HttpPost, Route("create"), Authorize(Roles = "admin")]
-        public void create([FromBody] UserModel user) {
-            context.createUser(user);
+        public Boolean create([FromBody] UserModel user) {
+            return context.createUser(user);
         }
 
         [HttpPut, Route("edit/{id}/{cid}"), Authorize]
-        public void edit([FromBody] UserModel user,int id, int cid) {
-            context.updateUser(user,id,cid);
+        public Boolean edit([FromBody] UserModel user,int id, int cid) {
+            return context.updateUser(user,id,cid);
         }
 
         [HttpDelete, Route("delete/{id}"), Authorize(Roles = "admin")]

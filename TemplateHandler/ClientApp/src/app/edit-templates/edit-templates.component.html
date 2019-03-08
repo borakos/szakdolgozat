@@ -12,7 +12,7 @@
 		</form>
 	</div>
 	
-	<div *ngIf="groupData && operation=='edit'">
+	<div *ngIf="operation=='edit' && (groupData | async) as groupDataF">
 		<form #editGroupForm="ngForm" (ngSubmit)="editGroup(editGroupForm)">
 			<h2>Edit Templates</h2>
 			<br/>
@@ -27,23 +27,23 @@
 					</tr>
 				</thead>
 				<tbody>
-					<tr *ngFor="let template of groupData.templates">
+					<tr *ngFor="let template of groupDataF.templates">
 						<td>{{ template.name }}</td>
-						<td>{{ template.type }}</td>
+						<td>{{ getTypeName(template.type) }}</td>
 						<td>{{ template.version }}</td>
 						<td><a class="btn btn-danger" (click)="removeTemplate(template.id,template.version)">Delete</a></td>
 					</tr>
 				</tbody>
 			</table>
 			<label for="defaultVersion"><h5>Default Version</h5></label>
-			<select id="defaultVersion" name="defaultVersion" ngModel="{{ groupData.group.defaultVersion }}" class="form-control col-sm-2" required>
-				<option *ngFor="let template of groupData.templates" value="{{ template.version }}">{{ template.version }}</option>
+			<select id="defaultVersion" name="defaultVersion" ngModel="{{ groupDataF.group.defaultVersion }}" class="form-control col-sm-2" required>
+				<option *ngFor="let template of groupDataF.templates" value="{{ template.version }}">{{ template.version }}</option>
 			</select>
 			<label for="groupName"><h5>Group name</h5></label>
 			<div *ngIf="!unique" class="alert alert-danger col-sm-3">Group Name is already in use.</div>
-			<input type="text" id="groupName" name="groupName" ngModel="{{ groupData.group.groupName }}" class="form-control col-sm-3" placeholder="Group Name" required>
+			<input type="text" id="groupName" name="groupName" ngModel="{{ groupDataF.group.groupName }}" class="form-control col-sm-3" placeholder="Group Name" required>
 			<label for="description"><h5>Description</h5></label>
-			<input type="text" id="description" name="description" ngModel="{{ groupData.group.description }}" class="form-control col-sm-3" placeholder="Description" required>
+			<input type="text" id="description" name="description" ngModel="{{ groupDataF.group.description }}" class="form-control col-sm-3" placeholder="Description" required>
 			<button *ngIf="!addTemplate" class="btn btn-primary" (click)="wantAdd()">Add template</button>
 			<button *ngIf="addTemplate" class="btn btn-primary" (click)="wantAdd()">Withdraw template</button>
 			<div *ngIf="addTemplate">
@@ -53,11 +53,12 @@
 				<select id="type" name="type" ngModel="word" class="form-control col-sm-3" required>
 					<option value="word">word</option>
 					<option value="excel">excel</option>
-				</select>	
-				<input type="file" id="file" #file placeholder="Choose template">
-				<a class="btn btn-primary" (click)="file.click()">Upload template</a>
+				</select>
+				<div *ngIf="!choosen" class="alert alert-danger col-sm-3">Template not choosen</div>
+				<input type="file" id="file" #file placeholder="Choose template" (change)="fileChanged(file.files)">
+				<a class="btn btn-primary" (click)="file.click()">Choose template</a>
 			</div>
-			<button class="btn btn-success" type="submit">Save</button>
+			<button class="btn btn-success" type="submit" >Save</button>
 		</form>
 	</div>
 	<button class="btn btn-secondary" (click)="back()">Back</button>

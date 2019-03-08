@@ -16,6 +16,10 @@ export function getRoleName(role:number):string{
 	return Role[role];
 }
 
+export function getTypeName(type:number):string{
+	return Type[type];
+}
+
 //Interfaces------------------------------------------------------------------------------------------------
 
 export interface TemplateFile {

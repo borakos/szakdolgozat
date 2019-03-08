@@ -75,15 +75,21 @@ namespace TemplateHandler.Controllers{
         }
 
         [HttpPost, Route("upload"), Authorize, DisableRequestSizeLimit]
-        public IActionResult upload() {
+        public IActionResult upload(String ownerId, String groupId, String name, String version) {
             try {
                 IFormFile file = Request.Form.Files[0];
-                String pathToSave = Path.Combine(Directory.GetCurrentDirectory(), Path.Combine("Resources", "Templates"));
+                String pathToSave = Path.Combine(Directory.GetCurrentDirectory(), "Resources\\Templates\\"+ownerId+"\\"+groupId);
+                if (!Directory.Exists(pathToSave)) {
+                    Directory.CreateDirectory(pathToSave);
+                }
                 if (file.Length > 0) {
                     String fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
-                    String fullPath = Path.Combine(pathToSave, fileName);
+                    String[] fileNameExtension = fileName.Split(".");
+                    fileNameExtension[0] = ownerId + "_" + groupId + "_" + version + "_" + name;
+                    String fullPath = Path.Combine(pathToSave, String.Join(".",fileNameExtension));
                     FileStream stream = new FileStream(fullPath, FileMode.Create);
                     file.CopyTo(stream);
+                    stream.Close();
                     return Ok();
                 } else {
                     return BadRequest();
