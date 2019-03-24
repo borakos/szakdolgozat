@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { GrouppedTemplates, GroupData } from './interfaces';
 import { Observable } from 'rxjs';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { PARAMETERS } from '@angular/core/src/util/decorators';
 
 @Injectable()
 export class TemplateService{
@@ -16,7 +15,7 @@ export class TemplateService{
 		});
 	}
 
-	//Components: templates
+	//Components: templates, execution
 	getGrouppedTemplates(id):Observable<GrouppedTemplates[]>{
         return this.http.get<GrouppedTemplates[]>(this.baseUrl+"/index/"+id, {
             headers: this.headerJson
@@ -30,7 +29,7 @@ export class TemplateService{
 		});
 	}
 
-	//Components: edit-templates
+	//Components: edit-templates, execution
 	getTemplates(id):Observable<GroupData>{
         return this.http.get<GroupData>(this.baseUrl+"/details/"+id, {
             headers: this.headerJson
@@ -45,11 +44,15 @@ export class TemplateService{
 	}
 
 	//Components: edit-templates
-	editGroup(groupData, type):Observable<boolean>{
-		let credentials= JSON.stringify(groupData);
-		return this.http.put<boolean>(this.baseUrl+"/edit/"+type,credentials, {
-			headers: this.headerJson
-		});
+	editGroup(type, gid, description, gname, defversion, tname=null, ttype=null, file=null):Observable<boolean>{
+		let params= new HttpParams()
+						.set("groupId",gid)
+						.set("description",description)
+						.set("groupName",gname)
+						.set("defaultVersion",defversion)
+						.set("templateName",tname)
+						.set("templateType",ttype);
+		return this.http.put<boolean>(this.baseUrl+"/edit/"+type,file,{params});
 	}
 
 	//Components: edit-templates
@@ -61,19 +64,9 @@ export class TemplateService{
 	}
 
 	//Components: edit-templates
-	removeTemplate(id, gid, setVersion):Observable<boolean>{
-        return this.http.delete<boolean>(this.baseUrl+"/removetemplate/"+id+"/"+gid+"/"+setVersion, {
+	removeTemplate(id):Observable<boolean>{
+        return this.http.delete<boolean>(this.baseUrl+"/removetemplate/"+id, {
             headers: this.headerJson
 		});
-	}
-
-	//Components: edit-templates
-	uploadTemplate(formData,oid,gid,name,version):Observable<boolean>{
-		let params= new HttpParams()
-						.set("ownerId",oid)
-						.set("groupId",gid)
-						.set("name",name)
-						.set("version",version);
-		return this.http.post<boolean>(this.baseUrl+'/upload',formData,{params});
 	}
 }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using TemplateHandler.Models;
 
 namespace TemplateHandler.Connection {
@@ -169,6 +170,10 @@ namespace TemplateHandler.Connection {
         }
 
         public Boolean deleteUser(int id) {
+            string directory = Path.Combine(Directory.GetCurrentDirectory(), "Resources\\Templates\\" + id);
+            if (Directory.Exists(directory)) {
+                Directory.Delete(directory, true);
+            }
             MySqlConnection conn = getConnection();
             string sql = "Delete from `users` Where `id`=@id";
             conn.Open();

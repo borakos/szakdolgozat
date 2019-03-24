@@ -34,15 +34,55 @@ namespace TemplateHandler.Controllers{
         }
 
         [HttpPost, Route("create"), Authorize]
-        public void create([FromBody] GrouppedTemplatesModel group) {
-            context.createGroup(group);
+        public bool create([FromBody] GrouppedTemplatesModel group) {
+            return context.createGroup(group);
         }
 
-        [HttpPut, Route("edit/{method}"), Authorize]
-        public void edit([FromBody] GroupDataModel groupData, string method) {
-            context.editGroup(groupData.group);
+        [HttpPut, Route("edit/{method}"), Authorize, DisableRequestSizeLimit]
+        public IActionResult edit(string method, int groupId, string description, string groupName, int defaultVersion, string templateName, TemplateFileModel.Type templateType) {
+            context.editGroup(groupId, description, groupName, defaultVersion);
             if (method == "all") {
-                context.createTemplate(groupData.templates[1]);
+                int ownerId = context.getOwnerOfGroup(groupId);
+                if (ownerId != -1) {
+                    int version = context.getNextVersionOfGroup(groupId);
+                    if (version != -1) {
+                        string path = uploadTemplate(Request.Form.Files[0],ownerId, groupId, templateName, version);
+                        if (path != null) {
+                            context.createTemplate(groupId, ownerId, version, templateName, templateType, path);
+                        } else {
+                            return StatusCode(500, "Cannot save template file");
+                        }
+                    } else {
+                        return StatusCode(500, "Version of group cannot be set");
+                    }
+                } else {
+                    return StatusCode(500, "Owner of given group not exist");
+                }
+            }
+            return Ok();
+        }
+
+        private string uploadTemplate(IFormFile file, int ownerId, int groupId, String name, int version) {
+            String fullPath = null;
+            try {
+                String pathToSave = Path.Combine(Directory.GetCurrentDirectory(), "Resources\\Templates\\" + ownerId + "\\" + groupId);
+                if (!Directory.Exists(pathToSave)) {
+                    Directory.CreateDirectory(pathToSave);
+                }
+                if (file.Length > 0) {
+                    String fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
+                    String[] fileNameExtension = fileName.Split(".");
+                    fileNameExtension[0] = ownerId + "_" + groupId + "_" + version + "_" + name;
+                    fullPath = Path.Combine(pathToSave, String.Join(".", fileNameExtension));
+                    FileStream stream = new FileStream(fullPath, FileMode.Create);
+                    file.CopyTo(stream);
+                    stream.Close();
+                    return fullPath;
+                } else {
+                    return fullPath;
+                }
+            } catch {
+                return fullPath;
             }
         }
 
@@ -66,36 +106,17 @@ namespace TemplateHandler.Controllers{
             return context.tesztGroupName(groupName, oid);
         }
 
-        [HttpDelete, Route("removetemplate/{id}/{gid}/{set}"), Authorize]
-        public void removeTemplate(int id, int gid, bool set) {
-            context.removeTemplate(id);
-            if (set) {
-                context.setMaxVersionDefault(gid);
-            }
-        }
-
-        [HttpPost, Route("upload"), Authorize, DisableRequestSizeLimit]
-        public IActionResult upload(String ownerId, String groupId, String name, String version) {
-            try {
-                IFormFile file = Request.Form.Files[0];
-                String pathToSave = Path.Combine(Directory.GetCurrentDirectory(), "Resources\\Templates\\"+ownerId+"\\"+groupId);
-                if (!Directory.Exists(pathToSave)) {
-                    Directory.CreateDirectory(pathToSave);
-                }
-                if (file.Length > 0) {
-                    String fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
-                    String[] fileNameExtension = fileName.Split(".");
-                    fileNameExtension[0] = ownerId + "_" + groupId + "_" + version + "_" + name;
-                    String fullPath = Path.Combine(pathToSave, String.Join(".",fileNameExtension));
-                    FileStream stream = new FileStream(fullPath, FileMode.Create);
-                    file.CopyTo(stream);
-                    stream.Close();
+        [HttpDelete, Route("removetemplate/{id}"), Authorize]
+        public IActionResult removeTemplate(int id) {
+            int groupId = context.removeTemplate(id);
+            if (groupId != -1) {
+                if (context.setMaxVersionDefault(groupId)) {
                     return Ok();
                 } else {
-                    return BadRequest();
+                    return StatusCode(500, "Group or templates not exist");
                 }
-            } catch {
-                return StatusCode(500, "Internal server error");
+            } else {
+                return StatusCode(500, "Group not exist");
             }
         }
     }

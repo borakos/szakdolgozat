@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using TemplateHandler.Models;
 
 namespace TemplateHandler.Connection {
@@ -113,24 +114,23 @@ namespace TemplateHandler.Connection {
             return list[0];
         }
 
-        public void editGroup(GrouppedTemplatesModel group) {
+        public void editGroup(int groupId, string description, string groupName, int defaultVersion) {
             MySqlConnection conn = getConnection();
-            string sql = "Update `template_groups` Set `name`=@name, `description`=@description,`default_version`=@defaultVersion, `latest_version`=@latestVersion Where `id`=@id";
+            string sql = "Update `template_groups` Set `name`=@name, `description`=@description,`default_version`=@defaultVersion Where `id`=@id";
             conn.Open();
             MySqlCommand cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@id", group.id);
-            cmd.Parameters.AddWithValue("@defaultVersion", group.defaultVersion);
-            cmd.Parameters.AddWithValue("@latestVersion", group.latestVersion);
-            cmd.Parameters.AddWithValue("@name", group.groupName);
-            cmd.Parameters.AddWithValue("@description", group.description);
+            cmd.Parameters.AddWithValue("@id", groupId);
+            cmd.Parameters.AddWithValue("@defaultVersion", defaultVersion);
+            cmd.Parameters.AddWithValue("@name", groupName);
+            cmd.Parameters.AddWithValue("@description", description);
             cmd.ExecuteNonQuery();
             conn.Close();
         }
 
-        public void setMaxVersionDefault(int id) {
+        public bool setMaxVersionDefault(int id) {
             MySqlConnection conn = getConnection();
             string sql = "Select version from template_groups tg join template_files tf on tg.id=tf.group_id where tg.id=@id order by version desc limit 1";
-            int version = 0;
+            int version = -1;
             conn.Open();
             MySqlCommand cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", id);
@@ -139,52 +139,156 @@ namespace TemplateHandler.Connection {
                 version = Convert.ToInt32(reader["version"]);
             }
             conn.Close();
-            sql = "Update `template_groups` Set `default_version`=@defaultVersion Where `id`=@id";
-            conn.Open();
-            cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@id", id);
-            cmd.Parameters.AddWithValue("@defaultVersion", version);
-            cmd.ExecuteNonQuery();
-            conn.Close();
+            if (version != -1) {
+                int defaultVersion = -1;
+                sql = "Select default_version from template_groups  Where id=@id";
+                conn.Open();
+                cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@id", id);
+                reader = cmd.ExecuteReader();
+                if (reader.Read()) {
+                    defaultVersion = Convert.ToInt32(reader["default_version"]);
+                }
+                conn.Close();
+                if (defaultVersion != -1) {
+                    if (defaultVersion != version) {
+                        sql = "Update `template_groups` Set `default_version`=@defaultVersion Where `id`=@id";
+                        conn.Open();
+                        cmd = new MySqlCommand(sql, conn);
+                        cmd.Parameters.AddWithValue("@id", id);
+                        cmd.Parameters.AddWithValue("@defaultVersion", version);
+                        cmd.ExecuteNonQuery();
+                        conn.Close();
+                    }
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
         }
 
-        public void createTemplate(TemplateFileModel file) {
+        public void createTemplate(int groupId, int ownerId, int version, string templateName, TemplateFileModel.Type templateType, string pathOriginal) {
+            string path = pathOriginal.Replace("\\", "/");
+            string[] paths = path.Split('/');
             MySqlConnection conn = getConnection();
             string sql = "Insert into `template_files` (`name`,`path`,`local_name`,`type`,`owner_id`,`group_id`,`version`) Values(@name,@path,@localName,@type,@ownerId,@groupId,@version)";
             conn.Open();
             MySqlCommand cmd = new MySqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@name",file.name);
-            cmd.Parameters.AddWithValue("@path","Resource/Templates/"+ file.ownerId+"/"+ file.groupId);
-            cmd.Parameters.AddWithValue("@localName",file.ownerId+"_"+file.groupId+"_"+file.version+"_"+file.name);
-            cmd.Parameters.AddWithValue("@type",file.type.ToString());
-            cmd.Parameters.AddWithValue("@ownerId",file.ownerId);
-            cmd.Parameters.AddWithValue("@groupId",file.groupId);
-            cmd.Parameters.AddWithValue("@version", file.version);
+            cmd.Parameters.AddWithValue("@name", templateName);
+            cmd.Parameters.AddWithValue("@path", path);
+            cmd.Parameters.AddWithValue("@localName", paths[paths.Length-1]);
+            cmd.Parameters.AddWithValue("@type", templateType.ToString());
+            cmd.Parameters.AddWithValue("@ownerId", ownerId);
+            cmd.Parameters.AddWithValue("@groupId", groupId);
+            cmd.Parameters.AddWithValue("@version", version);
             cmd.ExecuteNonQuery();
             conn.Close();
         }
 
-        public void removeTemplate(int id) {
+        public int getNextVersionOfGroup(int groupId) {
+            int version = -1;
             MySqlConnection conn = getConnection();
-            string sql = "Delete from template_files Where id=@id";
+            string sql = "Select latest_version from template_groups Where id=@id";
+            conn.Open();
+            MySqlCommand cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", groupId);
+            MySqlDataReader reader = cmd.ExecuteReader();
+            if (reader.Read()) {
+                version = Convert.ToInt32(reader["latest_version"]);
+            }
+            conn.Close();
+            if(version == -1) {
+                return version;
+            } else {
+                sql = "Update `template_groups` Set `latest_version`=@latestVersion, `default_version`=@defaultVersion Where `id`=@id";
+                conn.Open();
+                cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@id", groupId);
+                cmd.Parameters.AddWithValue("@latestVersion", version+1);
+                cmd.Parameters.AddWithValue("@defaultVersion", version + 1);
+                cmd.ExecuteNonQuery();
+                return version + 1;
+            }
+        }
+
+        public int getOwnerOfGroup(int groupId) {
+            int id = -1;
+            MySqlConnection conn = getConnection();
+            string sql = "Select owner_id from template_groups Where id=@id";
+            conn.Open();
+            MySqlCommand cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", groupId);
+            MySqlDataReader reader = cmd.ExecuteReader();
+            if (reader.Read()) {
+                id = Convert.ToInt32(reader["owner_id"]);
+            }
+            conn.Close();
+            return id;
+        }
+
+        public int removeTemplate(int id) {
+            string path = "";
+            int groupId = -1;
+            MySqlConnection conn = getConnection();
+            string sql = "Select path, group_id from template_files Where id=@id";
             conn.Open();
             MySqlCommand cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", id);
-            cmd.ExecuteNonQuery();
+            MySqlDataReader reader = cmd.ExecuteReader();
+            if (reader.Read()) {
+                groupId = Convert.ToInt32(reader["group_id"]);
+                path = reader["path"].ToString();
+            }
             conn.Close();
+            if (groupId != -1) {
+                conn = getConnection();
+                sql = "Delete from template_files Where id=@id";
+                conn.Open();
+                cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.ExecuteNonQuery();
+                conn.Close();
+                path = path.Replace('/', '\\');
+                if (File.Exists(path)) {
+                    File.Delete(path);
+                }
+            }
+            return groupId;
         }
 
-        public void deleteGroup(int id) {
+        public bool deleteGroup(int id) {
+            int ownerId = -1;
             MySqlConnection conn = getConnection();
-            string sql = "Delete from template_groups Where id=@id";
+            string sql = "Select owner_id from template_groups Where id=@id";
             conn.Open();
             MySqlCommand cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", id);
-            cmd.ExecuteNonQuery();
+            MySqlDataReader reader = cmd.ExecuteReader();
+            if (reader.Read()) {
+                ownerId = Convert.ToInt32(reader["owner_id"]);
+            }
             conn.Close();
+            if (ownerId != -1) {
+                string directory = Path.Combine(Directory.GetCurrentDirectory(), "Resources\\Templates\\" + ownerId + "\\" + id);
+                if (Directory.Exists(directory)) {
+                    Directory.Delete(directory, true);
+                }
+                conn = getConnection();
+                sql = "Delete from template_groups Where id=@id";
+                conn.Open();
+                cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.ExecuteNonQuery();
+                conn.Close();
+                return true;
+            } else {
+                return false;
+            }
         }
 
-        public void createGroup(GrouppedTemplatesModel group) {
+        public bool createGroup(GrouppedTemplatesModel group) {
             MySqlConnection conn = getConnection();
             string sql = "Insert into `template_groups` (`name`,`description`,`latest_version`,`default_version`,`owner_id`) Values(@name,@description,@latestVersion,@defaultVersion,@ownerId)";
             conn.Open();
@@ -196,6 +300,7 @@ namespace TemplateHandler.Connection {
             cmd.Parameters.AddWithValue("@ownerId", group.ownerId);
             cmd.ExecuteNonQuery();
             conn.Close();
+            return true;
         }
 
         public Boolean tesztGroupName(string groupName, int oid) {

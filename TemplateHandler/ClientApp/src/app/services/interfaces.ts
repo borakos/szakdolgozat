@@ -76,5 +76,5 @@ export interface GrouppedTemplates {
     description: string;
     latestVersion: number;
 	fileNumber: number;
-	usedVersion: number;
+	defaultVersion: number;
 }

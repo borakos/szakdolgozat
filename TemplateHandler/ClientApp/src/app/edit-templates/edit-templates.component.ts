@@ -50,58 +50,48 @@ export class EditTemplatesComponent implements OnInit {
 	}
 
 	editGroup(form:NgForm){
-		if(this.choosen){
-			let data=form.value;
-			this.groupData.subscribe((response:GroupData)=>{
-				if(data.groupName!=response.group.groupName){
-					this.templateService.nameTeszt(data.groupName,this.user.id).subscribe((isUnique:boolean)=>{
-						if(isUnique){
-							this.unique=true;
-							this.updateGroup(data);
-						}else{
-							this.unique=false;
-						}
-					},err=>{
-						console.log(err);
-					});
-				}else{
-					this.unique=true;
-					this.updateGroup(data);
-				}
-			},err=>{
-				console.log(err);
-			});
-		}
+		let data=form.value;
+		this.groupData.subscribe((response:GroupData)=>{
+			if(data.groupName!=response.group.groupName){
+				this.templateService.nameTeszt(data.groupName,this.user.id).subscribe((isUnique:boolean)=>{
+					if(isUnique){
+						this.unique=true;
+						this.updateGroup(data);
+					}else{
+						this.unique=false;
+					}
+				},err=>{
+					console.log(err);
+				});
+			}else{
+				this.unique=true;
+				this.updateGroup(data);
+			}
+		},err=>{
+			console.log(err);
+		});
 	}
 
 	updateGroup(data){
-		let type;
-		let groupData = {} as GroupData;
 		this.groupData.subscribe((response : GroupData)=>{
-			groupData.group=response.group;
-			groupData.group.defaultVersion= +data.defaultVersion;
+			let updated = null;
 			if(Object.keys(data).length == 3){
-				type="group";
+				updated = this.templateService.editGroup("group",response.group.id,data.description,data.groupName,data.defaultVersion);
 			}else{
-				type="all";
-				let template = {} as TemplateFile;
-				template.name=data.templateName;
-				template.type=Type[data.type];
-				groupData.group.latestVersion++;
-				groupData.group.defaultVersion=groupData.group.latestVersion;
-				template.version=groupData.group.latestVersion;
-				template.ownerId=this.user.id;
-				template.groupId=groupData.group.id;
-				groupData.templates= new Array(1);
-				groupData.templates.push(template);
-				this.uploadTemplate(this.fileToUpload,this.user.id,groupData.group.id,template.name,template.version);
+				if(this.choosen && (this.fileToUpload.length != 0)){
+					let template= <File>this.fileToUpload[0];
+					let formData= new FormData();
+					formData.append('file',template, template.name);
+					updated = this.templateService.editGroup("all",response.group.id,data.description,data.groupName,data.defaultVersion,data.templateName,Type[data.type],formData);
+				}
 			}
-			let updated = this.templateService.editGroup(groupData,type);
-			updated.subscribe(response=> {
-				this.getTemplates(this.groupId);
-			}, err => {
-				console.log(err);
-			});
+			if(updated != null){
+				updated.subscribe(response=> {
+					this.getTemplates(this.groupId);
+				}, err => {
+					console.log(err);
+				});
+			}
 		},err => {
 			console.log(err);
 		});
@@ -115,7 +105,12 @@ export class EditTemplatesComponent implements OnInit {
 		this.templateService.nameTeszt(data.groupName,this.user.id).subscribe((isUnique:boolean)=>{	
 			if(isUnique){
 				this.unique=true;
-				this.templateService.createGroup(data);
+				let create = this.templateService.createGroup(data);
+				create.subscribe((result) =>{
+					this.back();
+				},err =>{
+					console.log(err);
+				});
 			}else{
 				this.unique=false;
 			}
@@ -124,34 +119,13 @@ export class EditTemplatesComponent implements OnInit {
 		});
 	}
 
-	removeTemplate(id,version){
-		this.groupData.subscribe((response: GroupData)=> {
-			let setVersion=false;
-			if(response.group.defaultVersion==version){
-				setVersion=true;
-			}
-			let removed = this.templateService.removeTemplate(id,response.group.id,setVersion);
-			removed.subscribe((response)=> {
-				this.getTemplates(this.groupId);
-			}, err => {
-				console.log(err);
-			});
-        }, err => {
+	removeTemplate(id){
+		let removed = this.templateService.removeTemplate(id);
+		removed.subscribe((response)=> {
+			this.getTemplates(this.groupId);
+		}, err => {
 			console.log(err);
 		});
-	}
-
-	uploadTemplate(files,oid,gid,name,version){
-		if(files.length != 0){
-			let template= <File>files[0];
-			let formData= new FormData();
-			formData.append('file',template, template.name);
-			let uploaded=this.templateService.uploadTemplate(formData,oid,gid,name,version);
-			uploaded.subscribe((result) =>{},err =>{
-				console.log(err);
-			});
-		}
-		this.choosen=false;
 	}
 
 	fileChanged(files){

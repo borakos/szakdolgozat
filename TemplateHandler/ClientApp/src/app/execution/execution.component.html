@@ -1,5 +1,16 @@
 <h2>Execution</h2>
-<div class="col-md-3">
-	<input type="file" #file placeholder="Choose template" (change)="uploadTemplate(file.files)">
-	<button class="btn btn-primary" (click)="file.click()">Upload template</button>
+<div *ngIf="(templates | async) as templatesF" class="col-md-3">
+	<h3>Templates</h3>
+	<select #group ngModel class="btn btn-primary" (change)="getGroup(group.value)">
+		<option *ngFor="let template of templatesF" value="{{template.id}}">{{template.groupName}}</option>
+	</select><br>
+	<div *ngIf="(templateData | async) as tempData">
+		<h3>Version</h3>
+		<select #selectedTemplate ngModel="{{tempData.group.defaultVersion}}" class="btn btn-primary">
+			<option *ngFor="let item of tempData.templates" value="{{item.version}}">{{item.version}}</option>
+		</select><br>
+		<input type="file" #file placeholder="Choose template" (change)="saveDataFile(file.files)">
+		<button class="btn btn-primary" (click)="file.click()">Upload data file</button><br>
+		<button class="btn btn-primary" (click)="generate(selectedTemplate.value)">Generate files</button>
+	</div>
 </div>
