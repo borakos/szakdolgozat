@@ -7,7 +7,7 @@
 	<div *ngIf="(templateData | async) as tempData">
 		<h3>Version</h3>
 		<select #selectedTemplate ngModel="{{tempData.group.defaultVersion}}" class="btn btn-primary">
-			<option *ngFor="let item of tempData.templates" value="{{item.version}}">{{item.version}}</option>
+			<option *ngFor="let item of tempData.templates" value="{{item.version}}">{{item.version}} - {{item.name}}</option>
 		</select><br>
 		<input type="file" #file placeholder="Choose template" (change)="saveDataFile(file.files)">
 		<button class="btn btn-primary" (click)="file.click()">Upload data file</button><br>

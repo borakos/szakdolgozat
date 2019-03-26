@@ -64,10 +64,10 @@ export class ExecutionComponent implements OnInit {
 			let dataFile= <File>files[0];
 			let formData= new FormData();
 			formData.append('file',dataFile, dataFile.name);
-			/*let uploaded=this.executionService.sendToExecution(formData,tid);
+			let uploaded=this.executionService.sendToExecution(formData,tid);
 			uploaded.subscribe((result) =>{},err =>{
 				console.log(err);
-			});*/
+			});
 		}
 	}
 }

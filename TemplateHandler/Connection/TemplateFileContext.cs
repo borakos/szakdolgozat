@@ -42,6 +42,32 @@ namespace TemplateHandler.Connection {
             return list;
         }
 
+        public TemplateFileModel getTemplate(int id) {
+            TemplateFileModel file = new TemplateFileModel();
+            MySqlConnection conn = getConnection();
+            string sql = "Select tf.*, tg.name group_name, u.user_name owner_name from `template_files` tf Left Join `users` u on tf.owner_id=u.id LEFT JOIN template_groups tg on tf.group_id = tg.id Where tf.id=@id";
+            conn.Open();
+            MySqlCommand cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", id);
+            MySqlDataReader reader = cmd.ExecuteReader();
+            if (reader.Read()) {
+                file.id = Convert.ToInt32(reader["id"]);
+                file.name = reader["name"].ToString();
+                file.path = reader["path"].ToString();
+                file.localName = reader["local_name"].ToString();
+                file.type = ConnectionContext.parseEnum<TemplateFileModel.Type>(reader["type"].ToString());
+                file.ownerId = reader["owner_id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["owner_id"]);
+                file.groupId = reader["group_id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["group_id"]);
+                file.ownerName = reader["owner_name"] == DBNull.Value ? "None" : reader["owner_name"].ToString();
+                file.groupName = reader["group_name"] == DBNull.Value ? "None" : reader["group_name"].ToString();
+                file.version = Convert.ToInt32(reader["version"]);
+            } else {
+                return null;
+            }
+            conn.Close();
+            return file;
+        }
+
         public List<GrouppedTemplatesModel> getGroupedTemplate(int id) {
             List<GrouppedTemplatesModel> list = new List<GrouppedTemplatesModel>();
             MySqlConnection conn = getConnection();
