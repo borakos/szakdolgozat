@@ -7,10 +7,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TemplateHandler.Models;
 using TemplateHandler.Connection;
-using TemplateHandler.Parsers;
 using System.Diagnostics;
+using OfficeParser;
 using System.IO;
 using System.Net.Http.Headers;
+using Ionic.Zip;
+using System.Threading;
 
 namespace TemplateHandler.Controllers
 {
@@ -54,6 +56,10 @@ namespace TemplateHandler.Controllers
                     if (response == null) {
                         response = officeHandler.execute(templateModel.path.Replace('/', '\\'),destination);
                         if (response == null) {
+                            Thread.Sleep(100);
+                            ZipFile zip = new ZipFile();
+                            zip.AddDirectory(destination);
+                            zip.Save(destination+"\\solutions.zip");
                             return Ok();
                         } else {
                             return StatusCode(500, "Execution error: "+response);
@@ -70,6 +76,30 @@ namespace TemplateHandler.Controllers
         }
 
         private string uploadData(IFormFile file, int ownerId, int groupId, String name) {
+            String fullPath = null;
+            try {
+                String pathToSave = Path.Combine(Directory.GetCurrentDirectory(), "Resources\\Executions\\" + ownerId + "\\" + groupId + "\\" + DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss"));
+                if (!Directory.Exists(pathToSave)) {
+                    Directory.CreateDirectory(pathToSave);
+                }
+                if (file.Length > 0) {
+                    String fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
+                    String[] fileNameExtension = fileName.Split(".");
+                    fileNameExtension[0] = ownerId + "_" + groupId + "_data_" + name;
+                    fullPath = Path.Combine(pathToSave, String.Join(".", fileNameExtension));
+                    FileStream stream = new FileStream(fullPath, FileMode.Create);
+                    file.CopyTo(stream);
+                    stream.Close();
+                    return fullPath;
+                } else {
+                    return fullPath;
+                }
+            } catch {
+                return fullPath;
+            }
+        }
+
+        private string downloadDirectory(IFormFile file, int ownerId, int groupId, String name) {
             String fullPath = null;
             try {
                 String pathToSave = Path.Combine(Directory.GetCurrentDirectory(), "Resources\\Executions\\" + ownerId + "\\" + groupId + "\\" + DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss"));

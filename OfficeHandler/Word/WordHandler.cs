@@ -7,8 +7,8 @@ using Word = Microsoft.Office.Interop.Word;
 using System.IO;
 using System.Diagnostics;
 
-namespace TemplateHandler.Parsers {
-    abstract class WordHandler: OfficeHandler {
+namespace OfficeParser {
+    public abstract class WordHandler: OfficeHandler {
 
         protected List<WordDocument> docs = null;
 

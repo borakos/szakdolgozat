@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TemplateHandler.Parsers {
+namespace OfficeParser {
     class ExcelHandlerJSON : ExcelHandler {
         public override string parse(string path) {
             throw new NotImplementedException();

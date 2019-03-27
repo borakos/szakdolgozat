@@ -8,7 +8,7 @@ using Excel = Microsoft.Office.Interop.Excel;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 
-namespace TemplateHandler.Parsers {
+namespace OfficeParser {
     abstract class ExcelHandler: OfficeHandler {
 
         protected List<ExcelWorkbook> wbs = null;
