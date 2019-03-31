@@ -18,13 +18,16 @@ export class ExecutionComponent implements OnInit {
 	templates: Observable<GrouppedTemplates[]>;
 	user: User;
 	templateData: Observable<GroupData>;
+	clicked = false;
+	choosen = false;
+	error = null;
 	
 
 	constructor(private http:HttpClient) { }
 
 	ngOnInit() {
 		this.user=JSON.parse(localStorage.getItem('user'));
-		this.templates=this.templateService.getGrouppedTemplates(this.user.id);
+		this.templates=this.templateService.getGrouppedTemplatesExecution(this.user.id);
 		this.templates.subscribe((response)=> {}, err => {
             console.log(err);
 		});
@@ -32,8 +35,10 @@ export class ExecutionComponent implements OnInit {
 
 	saveDataFile(files){
 		if(files.length != 0){
+			this.choosen = true;
 			this.fileToUpload=files;
 		}else{
+			this.choosen = false;
 			this.fileToUpload=null;
 		}
 	}
@@ -46,6 +51,7 @@ export class ExecutionComponent implements OnInit {
 	}
 
 	generate(version){
+		this.clicked = true;
 		this.templateData.subscribe((response : GroupData)=> {
 			let i=0;
 			while((i<response.templates.length) && (response.templates[i].version != version)){
@@ -65,7 +71,23 @@ export class ExecutionComponent implements OnInit {
 			let formData= new FormData();
 			formData.append('file',dataFile, dataFile.name);
 			let uploaded=this.executionService.sendToExecution(formData,tid);
-			uploaded.subscribe((result) =>{},err =>{
+			uploaded.subscribe((result) =>{
+				let file = new Blob([result], {type: "application/zip"});
+				let data = window.URL.createObjectURL(file);
+				let link = document.createElement('a');
+				link.href = data;
+				link.download = "solutions.zip";
+				link.dispatchEvent(new MouseEvent('click', {bubbles:true,cancelable:true,view:window}));
+				setTimeout(function(){
+					window.URL.revokeObjectURL(data);
+					link.remove();
+				},100);
+				this.error = "none";
+			},err =>{
+				(new Response(err.error)).text().then(function(val){
+					err.error = val;
+				});
+				this.error = "error";
 				console.log(err);
 			});
 		}

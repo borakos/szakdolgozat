@@ -22,6 +22,15 @@ export class UserService{
 		});
 	}
 
+	//Components: edit-usergroups
+	getFilteredUsers(filter):Observable<User[]>{
+		let params= new HttpParams().set("filter",filter)
+		return this.http.get<User[]>(this.baseUrl+"/filter",{
+			headers: this.headerJson,
+			params
+		});
+	}
+
 	//Components: user
 	deleteUser(id):Observable<boolean>{
 		return this.http.delete<boolean>(this.baseUrl+"/delete/"+id, {

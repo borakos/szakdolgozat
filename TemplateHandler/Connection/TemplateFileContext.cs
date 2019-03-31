@@ -71,7 +71,9 @@ namespace TemplateHandler.Connection {
         public List<GrouppedTemplatesModel> getGroupedTemplate(int id) {
             List<GrouppedTemplatesModel> list = new List<GrouppedTemplatesModel>();
             MySqlConnection conn = getConnection();
-            string sql = "Select tg.id ,tg.name group_name, tg.description, tg.latest_version, tg.default_version, tg.owner_id, Count(tf.id) count from `template_groups` tg Left Join `template_files` tf on tf.group_id=tg.id Join `users` u on tg.owner_id=u.id Where u.id=@id Group by tg.id";
+            string sql = "SELECT tg.id ,tg.name group_name, tg.description, tg.latest_version, tg.default_version, tg.owner_id, ug.name owner_name, Count(tf.id) count ";
+            sql += "FROM `template_groups` tg LEFT JOIN `template_files` tf on tf.group_id=tg.id JOIN `user_groups` ug on tg.owner_id=ug.id ";
+            sql += "WHERE ug.id IN (SELECT group_id FROM users_user_groups uug WHERE user_id = @id AND rights>'5') GROUP BY tg.id";
             conn.Open();
             MySqlCommand cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", id);
@@ -85,6 +87,33 @@ namespace TemplateHandler.Connection {
                     fileNumber = Convert.ToInt32(reader["count"]),
                     defaultVersion = Convert.ToInt32(reader["default_version"]),
                     ownerId = Convert.ToInt32(reader["owner_id"]),
+                    ownerName = reader["owner_name"].ToString(),
+                });
+            }
+            conn.Close();
+            return list;
+        }
+
+        public List<GrouppedTemplatesModel> getGroupedTemplateExecution(int id) {
+            List<GrouppedTemplatesModel> list = new List<GrouppedTemplatesModel>();
+            MySqlConnection conn = getConnection();
+            string sql = "SELECT tg.id ,tg.name group_name, tg.description, tg.latest_version, tg.default_version, tg.owner_id, ug.name owner_name, Count(tf.id) count ";
+            sql += "FROM `template_groups` tg LEFT JOIN `template_files` tf on tf.group_id=tg.id JOIN `user_groups` ug on tg.owner_id=ug.id ";
+            sql += "WHERE ug.id IN (SELECT group_id FROM users_user_groups uug WHERE user_id = @id AND rights%2 = '1') GROUP BY tg.id";
+            conn.Open();
+            MySqlCommand cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", id);
+            MySqlDataReader reader = cmd.ExecuteReader();
+            while (reader.Read()) {
+                list.Add(new GrouppedTemplatesModel {
+                    id = Convert.ToInt32(reader["id"]),
+                    groupName = reader["group_name"].ToString(),
+                    description = reader["description"].ToString(),
+                    latestVersion = Convert.ToInt32(reader["latest_version"]),
+                    fileNumber = Convert.ToInt32(reader["count"]),
+                    defaultVersion = Convert.ToInt32(reader["default_version"]),
+                    ownerId = Convert.ToInt32(reader["owner_id"]),
+                    ownerName = reader["owner_name"].ToString(),
                 });
             }
             conn.Close();
@@ -140,15 +169,62 @@ namespace TemplateHandler.Connection {
             return list[0];
         }
 
-        public void editGroup(int groupId, string description, string groupName, int defaultVersion) {
+        public List<UserGroupModel> getUserGroups(int id) {
+            List<UserGroupModel> list = new List<UserGroupModel>();
             MySqlConnection conn = getConnection();
-            string sql = "Update `template_groups` Set `name`=@name, `description`=@description,`default_version`=@defaultVersion Where `id`=@id";
+            string sql = "SELECT ug.id, ug.name group_name, ug.description, ug.real_group FROM users_user_groups uug JOIN user_groups ug ON uug.group_id=ug.id ";
+            sql += "WHERE ug.id IN (SELECT group_id FROM users_user_groups uug WHERE user_id = @id)";
+            conn.Open();
+            MySqlCommand cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", id);
+            MySqlDataReader reader = cmd.ExecuteReader();
+            while (reader.Read()) {
+                list.Add(new UserGroupModel {
+                    id = Convert.ToInt32(reader["id"]),
+                    name = reader["group_name"].ToString(),
+                    description = reader["description"].ToString(),
+                    realGroup = Convert.ToInt32(reader["real_group"]) == 1,
+                    memberNumber = 0
+                });
+            }
+            conn.Close();
+            return list;
+        }
+
+        private void setOwnerOfFiles(int groupId, int ownerId) {
+            MySqlConnection conn = getConnection();
+            string sql = "Select owner_id from template_groups Where id=@id";
+            conn.Open();
+            MySqlCommand cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", groupId);
+            MySqlDataReader reader = cmd.ExecuteReader();
+            int owner = -1;
+            if (reader.Read()) {
+                owner = Convert.ToInt32(reader["owner_id"]);
+            }
+            conn.Close();
+            if((owner!=-1) && (owner != ownerId)) {
+                conn.Open();
+                sql = "Update template_files Set owner_id=@newId Where group_id=@groupId";
+                cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@newId", ownerId);
+                cmd.Parameters.AddWithValue("@groupId", groupId);
+                cmd.ExecuteNonQuery();
+                conn.Close();
+            }
+        }
+
+        public void editGroup(int groupId, string description, string groupName, int ownerId, int defaultVersion) {
+            setOwnerOfFiles(groupId, ownerId);
+            MySqlConnection conn = getConnection();
+            string sql = "Update `template_groups` Set `name`=@name, `description`=@description,`default_version`=@defaultVersion, `owner_id`=@ownerId Where `id`=@id";
             conn.Open();
             MySqlCommand cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", groupId);
             cmd.Parameters.AddWithValue("@defaultVersion", defaultVersion);
             cmd.Parameters.AddWithValue("@name", groupName);
             cmd.Parameters.AddWithValue("@description", description);
+            cmd.Parameters.AddWithValue("@ownerId", ownerId);
             cmd.ExecuteNonQuery();
             conn.Close();
         }

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { GrouppedTemplates, GroupData } from './interfaces';
+import { GrouppedTemplates, GroupData, UserGroup } from './interfaces';
 import { Observable } from 'rxjs';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 
@@ -15,9 +15,16 @@ export class TemplateService{
 		});
 	}
 
-	//Components: templates, execution
+	//Components: templates
 	getGrouppedTemplates(id):Observable<GrouppedTemplates[]>{
         return this.http.get<GrouppedTemplates[]>(this.baseUrl+"/index/"+id, {
+            headers: this.headerJson
+		});
+	}
+
+	//Components: execution
+	getGrouppedTemplatesExecution(id):Observable<GrouppedTemplates[]>{
+        return this.http.get<GrouppedTemplates[]>(this.baseUrl+"/indexexecution/"+id, {
             headers: this.headerJson
 		});
 	}
@@ -44,11 +51,12 @@ export class TemplateService{
 	}
 
 	//Components: edit-templates
-	editGroup(type, gid, description, gname, defversion, tname=null, ttype=null, file=null):Observable<boolean>{
+	editGroup(type, gid, description, gname, oid, defversion, tname=null, ttype=null, file=null):Observable<boolean>{
 		let params= new HttpParams()
 						.set("groupId",gid)
 						.set("description",description)
 						.set("groupName",gname)
+						.set("owner",oid)
 						.set("defaultVersion",defversion)
 						.set("templateName",tname)
 						.set("templateType",ttype);
@@ -59,6 +67,13 @@ export class TemplateService{
 	createGroup(groupData):Observable<boolean>{
 		let credentials= JSON.stringify(groupData);
 		return this.http.post<boolean>(this.baseUrl+"/create",credentials, {
+			headers: this.headerJson
+		});
+	}
+
+	//Components: edit-templates
+	getUserGroups(id):Observable<UserGroup[]>{
+		return this.http.get<UserGroup[]>(this.baseUrl+"/usergroups/"+id, {
 			headers: this.headerJson
 		});
 	}

@@ -8,6 +8,10 @@
 			<input type="text" id="groupName" name="groupName" ngModel class="form-control col-sm-3" placeholder="Group Name" required>
 			<label for="description"><h5>Description</h5></label>
 			<input type="text" id="description" name="description" ngModel class="form-control col-sm-3" placeholder="Description" required>
+			<label for="description"><h5>Owner group</h5></label>
+			<select id="ownerId" name="ownerId" ngModel class="form-control col-sm-3" required>
+				<option *ngFor="let userGroup of userGroups | async" value="{{userGroup.id}}">{{userGroup.name}}</option>
+			</select>
 			<button class="btn btn-success" type="submit">Save</button>
 		</form>
 	</div>
@@ -44,6 +48,10 @@
 			<input type="text" id="groupName" name="groupName" ngModel="{{ groupDataF.group.groupName }}" class="form-control col-sm-3" placeholder="Group Name" required>
 			<label for="description"><h5>Description</h5></label>
 			<input type="text" id="description" name="description" ngModel="{{ groupDataF.group.description }}" class="form-control col-sm-3" placeholder="Description" required>
+			<label for="description"><h5>Owner group</h5></label>
+			<select id="ownerId" name="ownerId" ngModel="{{groupDataF.group.ownerId}}" class="form-control col-sm-3" required>
+				<option *ngFor="let userGroup of userGroups | async" value="{{userGroup.id}}">{{userGroup.name}}</option>
+			</select>
 			<button *ngIf="!addTemplate" class="btn btn-primary" (click)="wantAdd()">Add template</button>
 			<button *ngIf="addTemplate" class="btn btn-primary" (click)="wantAdd()">Withdraw template</button>
 			<div *ngIf="addTemplate">

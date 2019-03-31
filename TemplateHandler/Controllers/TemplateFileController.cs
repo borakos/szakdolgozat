@@ -25,6 +25,11 @@ namespace TemplateHandler.Controllers{
             return context.getGroupedTemplate(id);
         }
 
+        [HttpGet, Route("indexexecution/{id}"), Authorize]
+        public IEnumerable<GrouppedTemplatesModel> indexExecution(int id) {
+            return context.getGroupedTemplateExecution(id);
+        }
+
         [HttpGet, Route("details/{id}"), Authorize]
         public GroupDataModel details(int id) {
             GroupDataModel data = new GroupDataModel();
@@ -38,9 +43,14 @@ namespace TemplateHandler.Controllers{
             return context.createGroup(group);
         }
 
+        [HttpGet, Route("usergroups/{id}"), Authorize]
+        public IEnumerable<UserGroupModel> usergroups(int id) {
+            return context.getUserGroups(id);
+        }
+
         [HttpPut, Route("edit/{method}"), Authorize, DisableRequestSizeLimit]
-        public IActionResult edit(string method, int groupId, string description, string groupName, int defaultVersion, string templateName, TemplateFileModel.Type templateType) {
-            context.editGroup(groupId, description, groupName, defaultVersion);
+        public IActionResult edit(string method, int groupId, string description, string groupName, int owner, int defaultVersion, string templateName, TemplateFileModel.Type templateType) {
+            context.editGroup(groupId, description, groupName, owner, defaultVersion);
             if (method == "all") {
                 int ownerId = context.getOwnerOfGroup(groupId);
                 if (ownerId != -1) {

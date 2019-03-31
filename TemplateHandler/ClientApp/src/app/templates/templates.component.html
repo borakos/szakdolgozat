@@ -5,6 +5,7 @@
 		<tr>
 			<th>Name</th>
 			<th>Description</th>
+			<th>Property of</th>
 			<th>Latest Version</th>
 			<th>Default Version</th>
 			<th>Number of files</th>
@@ -15,6 +16,7 @@
 		<tr *ngFor="let group of groups | async">
 			<td>{{ group.groupName }}</td>
 			<td>{{ group.description }}</td>
+			<td>{{ group.ownerName }}</td>
 			<td>{{ group.latestVersion }}</td>
 			<td>{{ group.defaultVersion }}</td>
 			<td>{{ group.fileNumber }}</td>
@@ -23,6 +25,7 @@
 	</tbody>
 	<tfoot>
 		<tr>
+			<td></td>
 			<td></td>
 			<td></td>
 			<td></td>

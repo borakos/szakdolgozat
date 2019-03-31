@@ -32,6 +32,10 @@ namespace TemplateHandler.Connection {
             return new UserContext(connectionString);
         }
 
+        public UserGroupContext createUserGroupContext() {
+            return new UserGroupContext(connectionString);
+        }
+
         public TemplateFileContext createTemplateFileContext() {
             return new TemplateFileContext(connectionString);
         }

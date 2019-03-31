@@ -37,6 +37,26 @@ namespace TemplateHandler.Connection {
             conn.Close();
             return list;
         }
+        public List<UserModel> getFilteredUsers(string filter) {
+            List<UserModel> list = new List<UserModel>();
+            MySqlConnection conn = getConnection();
+            string sql = "Select * from `users` WHERE user_name LIKE '%"+filter+"%' OR native_name LIKE '%"+filter+"%';";
+            conn.Open();
+            MySqlCommand cmd = new MySqlCommand(sql, conn);
+            MySqlDataReader reader = cmd.ExecuteReader();
+            while (reader.Read()) {
+                list.Add(new UserModel {
+                    id = Convert.ToInt32(reader["id"]),
+                    userName = reader["user_name"].ToString(),
+                    nativeName = reader["native_name"] == DBNull.Value ? "" : reader["native_name"].ToString(),
+                    role = ConnectionContext.parseEnum<UserModel.Role>(reader["role"].ToString()),
+                    password = reader["password"].ToString(),
+                    email = reader["email"] == DBNull.Value ? "" : reader["email"].ToString(),
+                });
+            }
+            conn.Close();
+            return list;
+        }
         public UserModel getUserById(int id) {
             UserModel user = new UserModel();
             Boolean hasUser = false;
@@ -166,22 +186,94 @@ namespace TemplateHandler.Connection {
             }
             cmd.ExecuteNonQuery();
             conn.Close();
+            UserModel insertedUser = getUserByUserName(user.userName);
+            if (insertedUser != null) {
+                int groupId = createPersonalGroup(insertedUser.id);
+                if (groupId != -1) {
+                    if (createPersonalAssociation(insertedUser.id, groupId)) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+
+        private bool createPersonalAssociation(int userId, int groupId) {
+            MySqlConnection conn = getConnection();
+            string sql = "Insert into `users_user_groups`(`user_id`,`group_id`,`rights`) Values(@userId,@groupId,'7')";
+            conn.Open();
+            MySqlCommand cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@userId", userId);
+            cmd.Parameters.AddWithValue("@groupId", groupId);
+            cmd.ExecuteNonQuery();
+            conn.Close();
             return true;
         }
 
-        public Boolean deleteUser(int id) {
-            string directory = Path.Combine(Directory.GetCurrentDirectory(), "Resources\\Templates\\" + id);
-            if (Directory.Exists(directory)) {
-                Directory.Delete(directory, true);
-            }
+        private int createPersonalGroup(int id) {
+            int groupId = -1;
             MySqlConnection conn = getConnection();
-            string sql = "Delete from `users` Where `id`=@id";
+            string sql = "Insert into `user_groups`(`name`,`description`,`real_group`) Values('Personal',@id,'0')";
             conn.Open();
             MySqlCommand cmd = new MySqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@id", id);
             cmd.ExecuteNonQuery();
             conn.Close();
-            return true;
+            sql = "Select id from `user_groups` where `description`=@id And `real_group`='0'";
+            conn.Open();
+            cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", id);
+            MySqlDataReader reader = cmd.ExecuteReader();
+            if (reader.Read()) {
+                groupId = Convert.ToInt32(reader["id"]);
+            }
+            conn.Close();
+            return groupId;
+        }
+
+        private int getPersonalGroupId(int userId) {
+            int groupId = -1;
+            string sql = "Select ug.id FROM users_user_groups uug JOIN user_groups ug ON uug.group_id=ug.id WHERE user_id=@id AND real_group='0'";
+            MySqlConnection conn = getConnection();
+            conn.Open();
+            MySqlCommand cmd = new MySqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@id", userId);
+            MySqlDataReader reader = cmd.ExecuteReader();
+            if (reader.Read()) {
+                groupId = Convert.ToInt32(reader["id"]);
+            }
+            return groupId;
+        }
+
+        public Boolean deleteUser(int id) {
+            int groupId = getPersonalGroupId(id);
+            if (groupId != -1) {
+                string directory = Path.Combine(Directory.GetCurrentDirectory(), "Resources\\Templates\\" + groupId);
+                if (Directory.Exists(directory)) {
+                    Directory.Delete(directory, true);
+                }
+                MySqlConnection conn = getConnection();
+                string sql = "Delete from `users` Where `id`=@id";
+                conn.Open();
+                MySqlCommand cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@id", id);
+                cmd.ExecuteNonQuery();
+                conn.Close();
+                sql = "Delete from `user_groups` Where `id`=@id";
+                conn.Open();
+                cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@id", groupId);
+                cmd.ExecuteNonQuery();
+                conn.Close();
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 }

@@ -17,9 +17,9 @@ export class ExecutionService{
 	}
 
 	//Components: execute
-	sendToExecution(formData,tid):Observable<boolean>{
+	sendToExecution(formData,tid):Observable<Blob>{
 		let params= new HttpParams()
 						.set("templateId",tid);
-		return this.http.post<boolean>(this.baseUrl+'/execute',formData,{params});
+		return this.http.post<Blob>(this.baseUrl+'/execute',formData,{params, responseType: 'blob' as 'json'});
 	}
 }

@@ -1,0 +1,31 @@
+<h2>Maintain Groups</h2>
+<br/>
+<table class="table table-striped table-hover">
+	<thead>
+		<tr>
+			<th>ID</th>
+			<th>Name</th>
+			<th>Description</th>
+			<th>Number of members</th>
+			<th>Maintain</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr *ngFor="let group of userGroups | async">
+			<td>{{ group.id }}</td>
+			<td>{{ group.name }}</td>
+			<td>{{ group.description }}</td>
+			<td>{{ group.memberNumber }}</td>
+			<td><a class="btn btn-primary" routerLink="/usergroup/edit/{{group.id}}">Edit</a><a class="btn btn-danger" (click)="deleteUserGroup(group.id)">Delete</a></td>
+		</tr>
+	</tbody>
+	<tfoot>
+		<tr>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td><a class="btn btn-success" routerLink="/usergroup/create/0">Create Group</a></td>
+		</tr>
+	</tfoot>
+</table>

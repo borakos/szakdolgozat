@@ -10,6 +10,13 @@ export enum Role{
 	user,
 }
 
+export enum Rights{
+	"No rights"=0,
+	"Read/Write"=6,
+	Execute=1,
+	All=7
+}
+
 //Functions-------------------------------------------------------------------------------------------------
 
 export function getRoleName(role:number):string{
@@ -18,6 +25,10 @@ export function getRoleName(role:number):string{
 
 export function getTypeName(type:number):string{
 	return Type[type];
+}
+
+export function getRightName(right:number):string{
+	return Rights[right];
 }
 
 //Interfaces------------------------------------------------------------------------------------------------
@@ -42,6 +53,22 @@ export interface User {
     email: string;
 	role: string;
 	password: string;
+}
+
+export interface UserGroup {
+    id: number;
+    name: string;
+    description: string;
+    realGroup: string;
+	memberNumber: string;
+}
+
+export interface UserGroupMember {
+	id: number;
+	user_id: number;
+    userName: string;
+	nativeName: string;
+	rights: number;
 }
 
 export interface Group{
@@ -73,7 +100,8 @@ export interface UserForm {
 export interface GrouppedTemplates {
     id: number;
     groupName: string;
-    description: string;
+	description: string;
+	ownerName: string;
     latestVersion: number;
 	fileNumber: number;
 	defaultVersion: number;

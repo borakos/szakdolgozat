@@ -1,0 +1,63 @@
+<div>
+	<div *ngIf="operation=='create'">
+		<form #createGroupForm="ngForm" (ngSubmit)="createGroup(createGroupForm)">
+			<h2>Create Group</h2>
+			<br/>
+			<label for="groupName"><h5>Group name</h5></label>
+			<div *ngIf="!unique" class="alert alert-danger col-sm-3">Group Name is already in use.</div>
+			<input type="text" id="groupName" name="groupName" ngModel class="form-control col-sm-3" placeholder="Group Name" required>
+			<label for="description"><h5>Description</h5></label>
+			<input type="text" id="description" name="description" ngModel class="form-control col-sm-3" placeholder="Description" required>
+			<button class="btn btn-success" type="submit">Save</button>
+		</form>
+	</div>
+	
+	<div *ngIf="operation=='edit' && (groupData | async) as groupDataF">
+		<form #editGroupForm="ngForm" (ngSubmit)="editGroup(editGroupForm)">
+			<h2>Edit Group</h2>
+			<br/>
+			<label for="templates"><h5>Members</h5></label>
+			<table class="table table-striped table-hover col-sm-5">
+				<thead>
+					<tr>
+						<th>User Name</th>
+						<th>Native Name</th>
+						<th>Rights</th>
+						<th>Modify</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr *ngFor="let member of members | async">
+						<td>{{ member.userName }}</td>
+						<td>{{ member.nativeName }}</td>
+						<td>{{ getRightName(member.rights) }}</td>
+						<td><a class="btn btn-danger" (click)="removeUser(member.id)">Remove</a></td>
+					</tr>
+				</tbody>
+			</table>
+			<label for="groupName"><h5>Group name</h5></label>
+			<div *ngIf="!unique" class="alert alert-danger col-sm-3">Group Name is already in use.</div>
+			<input type="text" id="groupName" name="groupName" ngModel="{{ groupDataF.name }}" class="form-control col-sm-3" placeholder="Group Name" required>
+			<label for="description"><h5>Description</h5></label>
+			<input type="text" id="description" name="description" ngModel="{{ groupDataF.description }}" class="form-control col-sm-3" placeholder="Description" required>
+			<button *ngIf="!addUser" class="btn btn-primary" (click)="wantAdd()">Add user</button>
+			<button *ngIf="addUser" class="btn btn-primary" (click)="wantAdd()">Withdraw user</button>
+			<div *ngIf="addUser">
+				<label for="userName"><h5>User name</h5></label>
+				<input type="text" #nameFilter id="nameFilter" name="nameFilter" ngModel class="form-control col-sm-3" placeholder="User Name filter" (input)="filtering(nameFilter.value)">
+				<select id="userName" name="userName" ngModel class="form-control col-sm-3" required>
+					<option *ngFor="let user of users | async" value="{{user.id}}">{{user.userName}}</option>
+				</select>
+				<label for="rights"><h5>Rights</h5></label>
+				<select id="rights" name="rights" ngModel="0" class="form-control col-sm-3" required>
+					<option value="0">No rights</option>
+					<option value="6">Read/Write</option>
+					<option value="1">Execute</option>
+					<option value="7">All</option>
+				</select>
+			</div>
+			<button class="btn btn-success" type="submit" >Save</button>
+		</form>
+	</div>
+	<button class="btn btn-secondary" (click)="back()">Back</button>
+</div>

@@ -1,6 +1,8 @@
 <h2>Execution</h2>
 <div *ngIf="(templates | async) as templatesF" class="col-md-3">
 	<h3>Templates</h3>
+	<div *ngIf="(error != 'none') && (error != null)" class="alert alert-danger">Error occured please check console for further information</div>
+	<div *ngIf="error == 'none'" class="alert alert-success">Execution was successfully</div>
 	<select #group ngModel class="btn btn-primary" (change)="getGroup(group.value)">
 		<option *ngFor="let template of templatesF" value="{{template.id}}">{{template.groupName}}</option>
 	</select><br>
@@ -11,6 +13,7 @@
 		</select><br>
 		<input type="file" #file placeholder="Choose template" (change)="saveDataFile(file.files)">
 		<button class="btn btn-primary" (click)="file.click()">Upload data file</button><br>
+		<div *ngIf="!choosen && clicked" class="alert alert-danger">Data file not choosen.</div>
 		<button class="btn btn-primary" (click)="generate(selectedTemplate.value)">Generate files</button>
 	</div>
 </div>

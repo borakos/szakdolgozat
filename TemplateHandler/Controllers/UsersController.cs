@@ -28,6 +28,15 @@ namespace TemplateHandler.Controllers
             return context.getAllUsers();
         }
 
+        [HttpGet, Route("filter"), Authorize(Roles = "admin")]
+        public IEnumerable<UserModel> filter(string filter=null) {
+            if (filter == null) {
+                return context.getAllUsers();
+            } else {
+                return context.getFilteredUsers(filter);
+            }
+        }
+
         [HttpGet, Route("details/{id}"), Authorize(Roles = "admin")]
         public UserModel details(int id) {
             return context.getUserById(id);

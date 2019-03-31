@@ -56,11 +56,17 @@ namespace TemplateHandler.Controllers
                     if (response == null) {
                         response = officeHandler.execute(templateModel.path.Replace('/', '\\'),destination);
                         if (response == null) {
-                            Thread.Sleep(100);
                             ZipFile zip = new ZipFile();
                             zip.AddDirectory(destination);
-                            zip.Save(destination+"\\solutions.zip");
-                            return Ok();
+                            zip.Save(destination+"\\..\\solutions.zip");
+                            if (Directory.Exists(destination)) {
+                                Directory.Delete(destination, true);
+                            }
+                            string type = "application/zip";
+                            HttpContext.Response.ContentType = type;
+                            FileContentResult file = new FileContentResult(System.IO.File.ReadAllBytes(destination + "\\..\\solutions.zip"), type);
+                            file.FileDownloadName = "solutions.zip";
+                            return file;
                         } else {
                             return StatusCode(500, "Execution error: "+response);
                         }
@@ -74,7 +80,7 @@ namespace TemplateHandler.Controllers
                 return StatusCode(500, "Given group not exist");
             }
         }
-
+       
         private string uploadData(IFormFile file, int ownerId, int groupId, String name) {
             String fullPath = null;
             try {

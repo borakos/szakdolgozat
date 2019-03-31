@@ -17,6 +17,8 @@ import { ExecutionComponent } from './execution/execution.component';
 import { TemplatesComponent } from './templates/templates.component';
 import { EditTemplatesComponent } from './edit-templates/edit-templates.component';
 import { TokenInterceptor } from '../interceptors/tokenservice';
+import { UserGroupsComponent } from './usergroups/usergroups.component';
+import { EditUserGroupsComponent } from './edit-usergroups/edit-usergroups.component';
 
 @NgModule({
 	declarations: [
@@ -28,7 +30,9 @@ import { TokenInterceptor } from '../interceptors/tokenservice';
 		EditUserComponent,
 		ExecutionComponent,
 		TemplatesComponent,
-		EditTemplatesComponent
+		EditTemplatesComponent,
+		UserGroupsComponent,
+		EditUserGroupsComponent
 	],
 	imports: [
 		BrowserModule,
@@ -64,6 +68,16 @@ import { TokenInterceptor } from '../interceptors/tokenservice';
 		{
 			path:'templates/:operation/:id',
 			component:EditTemplatesComponent,
+			canActivate: [AuthGuard]
+		},
+		{
+			path:'usergroups',
+			component:UserGroupsComponent,
+			canActivate: [AuthGuard]
+		},
+		{
+			path:'usergroup/:operation/:id',
+			component:EditUserGroupsComponent,
 			canActivate: [AuthGuard]
 		},
 		{

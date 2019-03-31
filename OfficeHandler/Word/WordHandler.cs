@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Word = Microsoft.Office.Interop.Word;
 using System.IO;
 using System.Diagnostics;
+using System.Threading;
 
 namespace OfficeParser {
     public abstract class WordHandler: OfficeHandler {
@@ -25,11 +26,16 @@ namespace OfficeParser {
                         doc = app.Documents.Open(paths[i]);
                         replaceSimpleValues(doc, docs[i].simpleValues);
                         replaceEnumeratedValues(doc, docs[i].enumeratedValues);
-                        replaceTableValues(doc, docs[i].tables);
-                        replaceListValues(doc, docs[i].lists);
+                        //replaceTableValues(doc, docs[i].tables);
+                        //replaceListValues(doc, docs[i].lists);
                         doc.Save();
                     }
                     app.Quit();
+                    int j = 0;
+                    while((j<100) && (Directory.GetFiles(destination).Length != docs.Count)) {
+                        j++;
+                        Thread.Sleep(10);
+                    }
                     return null;
                 } catch (Exception ex) {
                     Console.WriteLine(ex.Message);
