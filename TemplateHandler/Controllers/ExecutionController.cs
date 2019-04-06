@@ -8,11 +8,10 @@ using Microsoft.AspNetCore.Mvc;
 using TemplateHandler.Models;
 using TemplateHandler.Connection;
 using System.Diagnostics;
-using OfficeParser;
 using System.IO;
 using System.Net.Http.Headers;
-using Ionic.Zip;
 using System.Threading;
+using System.Net.Http;
 
 namespace TemplateHandler.Controllers
 {
@@ -28,7 +27,21 @@ namespace TemplateHandler.Controllers
 
         [HttpPost, Route("execute"), Authorize, DisableRequestSizeLimit]
         public IActionResult execute(int templateId) {
-            TemplateFileModel templateModel = context.getTemplate(templateId);
+            Debug.WriteLine("\n\n\nTemplate Handler Execute");
+            HttpClient executor = new HttpClient();
+            executor.BaseAddress = new Uri("http://localhost:50519/api/execute/");
+            var responseTask = executor.GetAsync("execute?templatePath=template&templateType=0&dataPath=data");
+            responseTask.Wait();
+            HttpResponseMessage result = responseTask.Result;
+            var readTask = result.Content.ReadAsAsync<string>();
+            readTask.Wait();
+            string answer = readTask.Result;
+            if (result.IsSuccessStatusCode) {
+                return Ok(answer);
+            } else {
+                return StatusCode(500, answer);
+            }
+            /*TemplateFileModel templateModel = context.getTemplate(templateId);
             if (templateModel != null) {
                 string path = uploadData(Request.Form.Files[0], templateModel.ownerId, templateModel.groupId, templateModel.name);
                 if (path != null) {
@@ -78,7 +91,7 @@ namespace TemplateHandler.Controllers
                 }
             } else {
                 return StatusCode(500, "Given group not exist");
-            }
+            }*/
         }
        
         private string uploadData(IFormFile file, int ownerId, int groupId, String name) {

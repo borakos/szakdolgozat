@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OfficeParser {
+namespace OfficeHandlerService.Office {
     class ExcelHandlerJSON : ExcelHandler {
         public override string parse(string path) {
             throw new NotImplementedException();

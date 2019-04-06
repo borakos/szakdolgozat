@@ -8,7 +8,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Threading;
 
-namespace OfficeParser {
+namespace OfficeHandlerService.Office {
     public abstract class WordHandler: OfficeHandler {
 
         protected List<WordDocument> docs = null;
@@ -26,8 +26,8 @@ namespace OfficeParser {
                         doc = app.Documents.Open(paths[i]);
                         replaceSimpleValues(doc, docs[i].simpleValues);
                         replaceEnumeratedValues(doc, docs[i].enumeratedValues);
-                        //replaceTableValues(doc, docs[i].tables);
-                        //replaceListValues(doc, docs[i].lists);
+                        replaceTableValues(doc, docs[i].tables);
+                        replaceListValues(doc, docs[i].lists);
                         doc.Save();
                     }
                     app.Quit();

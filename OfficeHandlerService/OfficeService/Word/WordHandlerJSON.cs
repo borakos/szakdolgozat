@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Word = Microsoft.Office.Interop.Word;
 
-namespace OfficeParser {
+namespace OfficeHandlerService.Office {
      public class WordHandlerJSON : WordHandler {
         public override string parse(String path) {
             List<WordDocument> words = new List<WordDocument>(); ;

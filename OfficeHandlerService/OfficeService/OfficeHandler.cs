@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OfficeParser {
+namespace OfficeHandlerService.Office {
     public abstract class OfficeHandler {
 
         public abstract string parse(String path);
