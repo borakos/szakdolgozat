@@ -27,71 +27,33 @@ namespace TemplateHandler.Controllers
 
         [HttpPost, Route("execute"), Authorize, DisableRequestSizeLimit]
         public IActionResult execute(int templateId) {
-            Debug.WriteLine("\n\n\nTemplate Handler Execute");
-            HttpClient executor = new HttpClient();
-            executor.BaseAddress = new Uri("http://localhost:50519/api/execute/");
-            var responseTask = executor.GetAsync("execute?templatePath=template&templateType=0&dataPath=data");
-            responseTask.Wait();
-            HttpResponseMessage result = responseTask.Result;
-            var readTask = result.Content.ReadAsAsync<string>();
-            readTask.Wait();
-            string answer = readTask.Result;
-            if (result.IsSuccessStatusCode) {
-                return Ok(answer);
-            } else {
-                return StatusCode(500, answer);
-            }
-            /*TemplateFileModel templateModel = context.getTemplate(templateId);
+            TemplateFileModel templateModel = context.getTemplate(templateId);
             if (templateModel != null) {
                 string path = uploadData(Request.Form.Files[0], templateModel.ownerId, templateModel.groupId, templateModel.name);
                 if (path != null) {
-                    OfficeHandler officeHandler = null;
-                    string[] paths = path.Split('.');
-                    string extension = paths[paths.Length - 1];
-                    switch (extension.ToLower()) {
-                        case "json": {
-                                switch (templateModel.type) {
-                                    case TemplateFileModel.Type.word: officeHandler = new WordHandlerJSON(); break;
-                                    default:
-                                        return StatusCode(500, "Handler cannot identify the type");
-                                }
-                        } break;
-                        default:
-                            return StatusCode(500, "Handler cannot identify the extension");
-                    }
-                    string response = officeHandler.parse(path);
-                    paths = path.Split('\\');
-                    string destination = "";
-                    for(int i = 0; i < paths.Length - 1; i++) {
-                        destination += paths[i]+"\\";
-                    }
-                    destination += "solutions";
-                    if (response == null) {
-                        response = officeHandler.execute(templateModel.path.Replace('/', '\\'),destination);
-                        if (response == null) {
-                            ZipFile zip = new ZipFile();
-                            zip.AddDirectory(destination);
-                            zip.Save(destination+"\\..\\solutions.zip");
-                            if (Directory.Exists(destination)) {
-                                Directory.Delete(destination, true);
-                            }
-                            string type = "application/zip";
-                            HttpContext.Response.ContentType = type;
-                            FileContentResult file = new FileContentResult(System.IO.File.ReadAllBytes(destination + "\\..\\solutions.zip"), type);
-                            file.FileDownloadName = "solutions.zip";
-                            return file;
-                        } else {
-                            return StatusCode(500, "Execution error: "+response);
-                        }
+                    HttpClient executor = new HttpClient();
+                    executor.BaseAddress = new Uri("http://localhost:50519/api/execute/");
+                    var responseTask = executor.GetAsync("execute?templatePath="+templateModel.path+"&templateType="+templateModel.type+"&dataPath="+path);
+                    responseTask.Wait();
+                    HttpResponseMessage result = responseTask.Result;
+                    var readTask = result.Content.ReadAsAsync<string>();
+                    readTask.Wait();
+                    string answer = readTask.Result;
+                    if (result.IsSuccessStatusCode) {
+                        string type = "application/zip";
+                        HttpContext.Response.ContentType = type;
+                        FileContentResult file = new FileContentResult(System.IO.File.ReadAllBytes(answer), type);
+                        file.FileDownloadName = "solutions.zip";
+                        return file;
                     } else {
-                        return StatusCode(500, "Parse error: " + response);
+                        return StatusCode(500, answer);
                     }
                 } else {
                     return StatusCode(500, "File upload failed");
                 }
             } else {
                 return StatusCode(500, "Given group not exist");
-            }*/
+            }
         }
        
         private string uploadData(IFormFile file, int ownerId, int groupId, String name) {

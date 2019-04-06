@@ -24,8 +24,7 @@ namespace OfficeHandlerService.Controllers
 
         [HttpGet, Route("execute")]
         public IHttpActionResult execute(string templatePath, TemplateType templateType, string dataPath) {
-            return Ok("Office Servive");
-            /*OfficeHandler officeHandler = null;
+            OfficeHandler officeHandler = null;
             string[] paths = dataPath.Split('.');
             string extension = paths[paths.Length - 1];
             switch (extension.ToLower()) {
@@ -56,13 +55,16 @@ namespace OfficeHandlerService.Controllers
                     if (Directory.Exists(destination)) {
                         Directory.Delete(destination, true);
                     }
-                    return Ok(destination + "\\..\\solutions.zip");
+                    if (File.Exists(dataPath)) {
+                        File.Delete(dataPath);
+                    }
+                    return Content(HttpStatusCode.OK, destination + "\\..\\solutions.zip");
                 } else {
                     return Content(HttpStatusCode.InternalServerError, "Execution error: " + response);
                 }
             } else {
-                return Content(HttpStatusCode.InternalServerError, "Execution error: " + response);
-            }*/
+                return Content(HttpStatusCode.InternalServerError, "Parse error: " + response);
+            }
         }
     }
 }
