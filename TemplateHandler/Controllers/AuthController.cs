@@ -20,34 +20,45 @@ namespace TemplateHandler.Controllers
     {
         [HttpPost, Route("login")]
         public IActionResult login([FromBody]LoginModel user) {
-            if (user == null) {
-                //Debug.WriteLine("\n\nDidn't get user\n\n");
-                return BadRequest("Invalid user parameters.");
-            }
-            //Debug.WriteLine("\n\nusername:"+user.userName+", password:"+user.password+"\n\n");
-            UserContext context = ConnectionContext.Instace.createUserContext();
-            if (context.validateUser(user.userName, user.password)) {
-                UserModel loggedInUser = context.getUserByUserName(user.userName);
-                SymmetricSecurityKey secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Startup.Configuration["Authentication:Key:SymmetricSecurityKey"]));
-                SigningCredentials signInCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
-                List<Claim> claims = new List<Claim> {
-                    new Claim("userName", loggedInUser.userName),
-                    new Claim("role", loggedInUser.role.ToString()),
-                    new Claim("nativeName", loggedInUser.nativeName),
-                    new Claim("email", loggedInUser.email),
-                    new Claim("id", loggedInUser.id.ToString())
-                };
-                JwtSecurityToken tokenOptions = new JwtSecurityToken(
-                    issuer: Startup.Configuration["Server:Host"],
-                    audience: Startup.Configuration["Server:Host"],
-                    claims: claims,
-                    expires: DateTime.Now.AddHours(1),
-                    signingCredentials: signInCredentials
-                );
-                string tokenString = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
-                return Ok(new { token = tokenString });
-            } else {
-                return Unauthorized();
+            try {
+                if (user == null) {
+                    return BadRequest("Invalid user parameters.");
+                }
+                UserContext context = ConnectionContext.Instace.createUserContext();
+                string error = null;
+                if (context.validateUser(user.userName, user.password, out error)) {
+                    UserModel loggedInUser = context.getUserByUserName(user.userName, out error);
+                    if (loggedInUser != null) {
+                        SymmetricSecurityKey secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Startup.Configuration["Authentication:Key:SymmetricSecurityKey"]));
+                        SigningCredentials signInCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+                        List<Claim> claims = new List<Claim> {
+                            new Claim("userName", loggedInUser.userName),
+                            new Claim("role", loggedInUser.role.ToString()),
+                            new Claim("nativeName", loggedInUser.nativeName),
+                            new Claim("email", loggedInUser.email),
+                            new Claim("id", loggedInUser.id.ToString())
+                        };
+                        JwtSecurityToken tokenOptions = new JwtSecurityToken(
+                            issuer: Startup.Configuration["Server:Host"],
+                            audience: Startup.Configuration["Server:Host"],
+                            claims: claims,
+                            expires: DateTime.Now.AddHours(1),
+                            signingCredentials: signInCredentials
+                        );
+                        string tokenString = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
+                        return Ok(new { token = tokenString });
+                    } else if (error == null) {
+                        return StatusCode(500, "[AuthController/login] Cannot find user.");
+                    } else {
+                        return StatusCode(500, "[AuthController/login]" + error);
+                    }
+                } else if (error == null) {
+                    return Unauthorized();
+                } else {
+                    return StatusCode(500, "[AuthController/login]" + error);
+                }
+            }catch (Exception ex){
+                return StatusCode(500, "[AuthController/login]" + ex.Message);
             }
         }
     }

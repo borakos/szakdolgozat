@@ -24,52 +24,134 @@ namespace TemplateHandler.Controllers
         }
 
         [HttpGet, Route("index"), Authorize(Roles ="admin")]
-        public IEnumerable<UserGroupModel> index() {
-            return context.getAllUserGroups();
+        public IActionResult index() {
+            try {
+                string error = null;
+                UserGroupModel[] list = context.getAllUserGroups(out error);
+                if (list != null) {
+                    return Ok(list);
+                } else {
+                    return StatusCode(500, "[UserGroupController/index] " + error);
+                }
+            }catch(Exception ex) {
+                return StatusCode(500, "[UserGroupController/index] " + ex.Message);
+            }
         }
 
         [HttpGet, Route("details/{id}"), Authorize(Roles = "admin")]
-        public UserGroupModel details(int id) {
-            return context.getUserGroupById(id);
+        public IActionResult details(int id) {
+            try {
+                string error = null;
+                UserGroupModel user = context.getUserGroupById(id, out error);
+                if (user != null) {
+                    return Ok(user);
+                } else if (error == null) {
+                    return StatusCode(500, "[UserGroupController/details] Cannot find user group.");
+                } else {
+                    return StatusCode(500, "[UserGroupController/details] " + error);
+                }
+            } catch (Exception ex) {
+                return StatusCode(500, "[UserGroupController/details] " + ex.Message);
+            }
         }
 
         [HttpGet, Route("members/{id}"), Authorize(Roles = "admin")]
-        public IEnumerable<MemberModel> members(int id) {
-            return context.getUserGroupMember(id);
+        public IActionResult members(int id) {
+            try {
+                string error = null;
+                MemberModel[] list = context.getUserGroupMember(id, out error);
+                if (list != null) {
+                    return Ok(list);
+                } else {
+                    return StatusCode(500, "[UserGroupController/members] " + error);
+                }
+            } catch (Exception ex) {
+                return StatusCode(500, "[UserGroupController/members] " + ex.Message);
+            }
         }
 
         [HttpGet, Route("teszt/{groupName}"),Authorize(Roles = "admin")]
-        public Boolean teszt(string groupName) {
-            UserGroupModel group = context.getUserGroupByGroupName(groupName);
-            if (group == null) {
-                return true;
+        public IActionResult teszt(string groupName) {
+            try {
+                string error = null;
+                UserGroupModel group = context.getUserGroupByGroupName(groupName, out error);
+                if (group != null) {
+                    return Ok(false);
+                } else if (error == null) {
+                    return Ok(true);
+                } else {
+                    return StatusCode(500, "[UserGroupController/teszt] " + error);
+                }
+            } catch (Exception ex) {
+                return StatusCode(500, "[UserGroupController/teszt] " + ex.Message);
             }
-            return false;
         }
 
         [HttpPost, Route("create"), Authorize(Roles = "admin")]
-        public Boolean create([FromBody] UserGroupModel group) {
-            group.realGroup = true;
-            return context.createGroup(group);
+        public IActionResult create([FromBody] UserGroupModel group) {
+            try {
+                string error = null;
+                group.realGroup = true;
+                bool answer = context.createGroup(group,out error);
+                if (answer) {
+                    return Ok(true);
+                } else {
+                    return StatusCode(500, "[UserGroupController/create] " + error);
+                }
+            } catch (Exception ex) {
+                return StatusCode(500, "[UserGroupController/create] " + ex.Message);
+            }
         }
 
         [HttpPut, Route("edit/{method}"), Authorize(Roles = "admin")]
         public IActionResult edit(string method, int groupId, string description, string groupName, int userId, int rights) {
-            context.editGroup(groupId, description, groupName);
-            if (method == "all") {
-                context.createMember(groupId, userId, rights);
+            try {
+                string error = null;
+                bool answer = context.editGroup(groupId, description, groupName, out error);
+                if (answer) {
+                    if (method == "all") {
+                        answer = context.createMember(groupId, userId, rights, out error);
+                        if (!answer) {
+                            return StatusCode(500, "[UserGroupController/edit] " + error);
+                        }
+                    }
+                    return Ok(true);
+                } else {
+                    return StatusCode(500, "[UserGroupController/edit] " + error);
+                }
+            } catch (Exception ex) {
+                return StatusCode(500, "[UserGroupController/edit] " + ex.Message);
             }
-            return Ok();
         }
 
         [HttpDelete, Route("delete/{id}"), Authorize(Roles = "admin")]
-        public Boolean delete(int id) {
-            return context.deleteUserGroup(id);
+        public IActionResult delete(int id) {
+            try {
+                string error = null;
+                bool answer = context.deleteUserGroup(id, out error);
+                if (answer) {
+                    return Ok(true);
+                } else {
+                    return StatusCode(500, "[UserGroupController/delete] " + error);
+                }
+            } catch (Exception ex) {
+                return StatusCode(500, "[UserGroupController/delete] " + ex.Message);
+            }
         }
 
         [HttpDelete, Route("removeuser/{id}"), Authorize(Roles = "admin")]
-        public Boolean removeUser(int id) {
-            return context.removeUser(id);
+        public IActionResult removeUser(int id) {
+            try {
+                string error = null;
+                bool answer = context.removeUser(id, out error);
+                if (answer) {
+                    return Ok(true);
+                } else {
+                    return StatusCode(500, "[UserGroupController/removeUser] " + error);
+                }
+            } catch (Exception ex) {
+                return StatusCode(500, "[UserGroupController/removeUser] " + ex.Message);
+            }
         }
     }
 }

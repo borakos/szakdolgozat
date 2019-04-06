@@ -24,46 +24,121 @@ namespace TemplateHandler.Controllers
         }
 
         [HttpGet, Route("index"), Authorize(Roles ="admin")]
-        public IEnumerable<UserModel> index() {
-            return context.getAllUsers();
+        public IActionResult index() {
+            try {
+                string error = null;
+                UserModel[] list = context.getAllUsers(out error);
+                if (list != null) {
+                    return Ok(list);
+                } else {
+                    return StatusCode(500, "[UserController/index] " + error);
+                }
+            }catch(Exception ex) {
+                return StatusCode(500, "[UserController/index] " + ex.Message);
+            }
         }
 
         [HttpGet, Route("filter"), Authorize(Roles = "admin")]
-        public IEnumerable<UserModel> filter(string filter=null) {
-            if (filter == null) {
-                return context.getAllUsers();
-            } else {
-                return context.getFilteredUsers(filter);
+        public IActionResult filter(string filter=null) {
+            try {
+                string error = null;
+                if (filter == null) {
+                    UserModel[] list = context.getAllUsers(out error);
+                    if (list != null) {
+                        return Ok(list);
+                    } else {
+                        return StatusCode(500, "[UserController/filter] " + error);
+                    }
+                } else {
+                    UserModel[] list = context.getFilteredUsers(filter, out error);
+                    if (list != null) {
+                        return Ok(list);
+                    } else {
+                        return StatusCode(500, "[UserController/filter] " + error);
+                    }
+                }
+            } catch (Exception ex) {
+                return StatusCode(500, "[UserController/filter] " + ex.Message);
             }
         }
 
         [HttpGet, Route("details/{id}"), Authorize(Roles = "admin")]
-        public UserModel details(int id) {
-            return context.getUserById(id);
+        public IActionResult details(int id) {
+            try { 
+                string error = null;
+                UserModel user = context.getUserById(id, out error);
+                if (user != null) {
+                    return Ok(user);
+                } else if (error == null) {
+                    return Ok(user);
+                } else {
+                    return StatusCode(500, "[UserController/details] " + error);
+                }
+            } catch (Exception ex) {
+                return StatusCode(500, "[UserController/details] " + ex.Message);
+            }
         }
 
         [HttpGet, Route("teszt/{userName}"),Authorize]
-        public Boolean teszt(string userName) {
-            UserModel user = context.getUserByUserName(userName);
-            if (user == null) {
-                return true;
+        public IActionResult teszt(string userName) {
+            try { 
+                string error = null;
+                UserModel user = context.getUserByUserName(userName, out error);
+                if (user != null) {
+                    return Ok(false);
+                } else if (error == null) {
+                    return Ok(true);
+                } else {
+                    return StatusCode(500, "[UserController/teszt] " + error);
+                }
+            } catch (Exception ex) {
+                return StatusCode(500, "[UserController/teszt] " + ex.Message);
             }
-            return false;
         }
 
         [HttpPost, Route("create"), Authorize(Roles = "admin")]
-        public Boolean create([FromBody] UserModel user) {
-            return context.createUser(user);
+        public IActionResult create([FromBody] UserModel user) {
+            try {
+                string error = null;
+                bool answer = context.createUser(user, out error);
+                if (answer) {
+                    return Ok(true);
+                } else {
+                    return StatusCode(500, "[UserController/create] " + error);
+                }
+            } catch (Exception ex) {
+                return StatusCode(500, "[UserController/create] " + ex.Message);
+            }
         }
 
         [HttpPut, Route("edit/{id}/{cid}"), Authorize]
-        public Boolean edit([FromBody] UserModel user,int id, int cid) {
-            return context.updateUser(user,id,cid);
+        public IActionResult edit([FromBody] UserModel user,int id, int cid) {
+            try {
+                string error = null;
+                bool answer = context.updateUser(user, id, cid, out error);
+                if (answer) {
+                    return Ok(true);
+                } else {
+                    return StatusCode(500, "[UserController/edit] " + error);
+                }
+            } catch (Exception ex) {
+                return StatusCode(500, "[UserController/edit] " + ex.Message);
+            }
         }
 
         [HttpDelete, Route("delete/{id}"), Authorize(Roles = "admin")]
-        public Boolean delete(int id) {
-            return context.deleteUser(id);
+        public IActionResult delete(int id) {
+            try {
+                string error = null;
+                bool answer = context.deleteUser(id, out error);
+                if (answer) {
+                    return Ok(true);
+                } else {
+                    return StatusCode(500, "[UserController/delete] " + error);
+                }
+            } catch (Exception ex) {
+                return StatusCode(500, "[UserController/delete] " + ex.Message);
+            }
         }
     }
 }
