@@ -12,7 +12,9 @@ import {User} from './../services/interfaces';
 })
 export class LoginComponent implements OnInit {
 
-	invalidLogin:boolean;
+	invalidLogin: boolean;
+	error: string;
+	
 
 	constructor(private http:HttpClient, private router:Router, private jwtHelper: JwtHelperService) { }
 
@@ -42,6 +44,7 @@ export class LoginComponent implements OnInit {
 			this.router.navigate(["/"]);
 		}, err => {
 			this.invalidLogin = true;
+			this.error = err.error;
 			console.log(err);
 		});
 	}

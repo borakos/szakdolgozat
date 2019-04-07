@@ -53,7 +53,7 @@ namespace TemplateHandler.Controllers
                         return StatusCode(500, "[AuthController/login]" + error);
                     }
                 } else if (error == null) {
-                    return Unauthorized();
+                    return StatusCode(401, "Invalid username or password");
                 } else {
                     return StatusCode(500, "[AuthController/login]" + error);
                 }

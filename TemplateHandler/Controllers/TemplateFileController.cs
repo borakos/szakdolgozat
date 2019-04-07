@@ -21,60 +21,129 @@ namespace TemplateHandler.Controllers{
         }
 
         [HttpGet, Route("index/{id}"), Authorize]
-        public IEnumerable<GrouppedTemplatesModel> index(int id) {
-            return context.getGroupedTemplate(id);
+        public IActionResult index(int id) {
+            try {
+                string error = null;
+                GrouppedTemplatesModel[] list = context.getGroupedTemplate(id, out error);
+                if (list != null) {
+                    return Ok(list);
+                } else {
+                    return StatusCode(500, "[TemplateFileController/index] " + error);
+                }
+            }catch(Exception ex) {
+                return StatusCode(500, "[TemplateFileController/index] " + ex.Message);
+            }
         }
 
         [HttpGet, Route("indexexecution/{id}"), Authorize]
-        public IEnumerable<GrouppedTemplatesModel> indexExecution(int id) {
-            return context.getGroupedTemplateExecution(id);
+        public IActionResult indexExecution(int id) {
+            try {
+                string error = null;
+                GrouppedTemplatesModel[] list = context.getGroupedTemplateExecution(id, out error);
+                if (list != null) {
+                    return Ok(list);
+                } else {
+                    return StatusCode(500, "[TemplateFileController/indexExecution] " + error);
+                }
+            } catch (Exception ex) {
+                return StatusCode(500, "[TemplateFileController/indexExecution] " + ex.Message);
+            }
         }
 
         [HttpGet, Route("details/{id}"), Authorize]
-        public GroupDataModel details(int id) {
-            GroupDataModel data = new GroupDataModel();
-            data.templates = context.getTemplatesInGroup(id);
-            data.group = context.getGroup(id);
-            return data;
+        public IActionResult details(int id) {
+            try {
+                string error = null;
+                GroupDataModel data = new GroupDataModel();
+                data.templates = context.getTemplatesInGroup(id, out error);
+                if (data.templates == null) {
+                    return StatusCode(500, "[TemplateFileController/details] " + error);
+                }
+                data.group = context.getGroup(id, out error);
+                if (data.group == null) {
+                    return StatusCode(500, "[TemplateFileController/details] " + error);
+                }
+                return Ok(data);
+            } catch (Exception ex) {
+                return StatusCode(500, "[TemplateFileController/details] " + ex.Message);
+            }
         }
 
         [HttpPost, Route("create"), Authorize]
-        public bool create([FromBody] GrouppedTemplatesModel group) {
-            return context.createGroup(group);
+        public IActionResult create([FromBody] GrouppedTemplatesModel group) {
+            try {
+                string error = null;
+                if (context.createGroup(group, out error)) {
+                    return Ok(true);
+                } else {
+                    return StatusCode(500, "[TemplateFileController/create] " + error);
+                }
+            } catch (Exception ex) {
+                return StatusCode(500, "[TemplateFileController/create] " + ex.Message);
+            }
         }
 
         [HttpGet, Route("usergroups/{id}"), Authorize]
-        public IEnumerable<UserGroupModel> usergroups(int id) {
-            return context.getUserGroups(id);
+        public IActionResult usergroups(int id) {
+            try {
+                string error = null;
+                UserGroupModel[] list = context.getUserGroups(id, out error);
+                if (list != null) {
+                    return Ok(list);
+                } else {
+                    return StatusCode(500, "[TemplateFileController/userGroups] " + error);
+                }
+            } catch (Exception ex) {
+                return StatusCode(500, "[TemplateFileController/userGroups] " + ex.Message);
+            }
         }
 
         [HttpPut, Route("edit/{method}"), Authorize, DisableRequestSizeLimit]
         public IActionResult edit(string method, int groupId, string description, string groupName, int owner, int defaultVersion, string templateName, TemplateFileModel.Type templateType) {
-            context.editGroup(groupId, description, groupName, owner, defaultVersion);
-            if (method == "all") {
-                int ownerId = context.getOwnerOfGroup(groupId);
-                if (ownerId != -1) {
-                    int version = context.getNextVersionOfGroup(groupId);
-                    if (version != -1) {
-                        string path = uploadTemplate(Request.Form.Files[0],ownerId, groupId, templateName, version);
-                        if (path != null) {
-                            context.createTemplate(groupId, ownerId, version, templateName, templateType, path);
+            try {
+                string error = null;
+                if (context.editGroup(groupId, description, groupName, owner, defaultVersion, out error)) {
+                    if (method == "all") {
+                        int ownerId = context.getOwnerOfGroup(groupId, out error);
+                        if (ownerId != -1) {
+                            int version = context.getNextVersionOfGroup(groupId, out error);
+                            if (version != -1) {
+                                string path = uploadTemplate(Request.Form.Files[0], ownerId, groupId, templateName, version, out error);
+                                if (path != null) {
+                                    if (context.createTemplate(groupId, ownerId, version, templateName, templateType, path, out error)) {
+                                        return Ok(true);
+                                    } else {
+                                        return StatusCode(500, "[TemplateFileController/edit] " + error);
+                                    }
+                                } else if (error == null) {
+                                    return StatusCode(500, "[TemplateFileController/edit] Cannot save template file");
+                                } else {
+                                    return StatusCode(500, "[TemplateFileController/edit] " + error);
+                                }
+                            } else if (error == null) {
+                                return StatusCode(500, "[TemplateFileController/edit] Version of group cannot be set");
+                            } else {
+                                return StatusCode(500, "[TemplateFileController/edit] " + error);
+                            }
+                        } else if (error == null) {
+                            return StatusCode(500, "[TemplateFileController/edit] Owner of given group not exist");
                         } else {
-                            return StatusCode(500, "Cannot save template file");
+                            return StatusCode(500, "[TemplateFileController/edit] " + error);
                         }
                     } else {
-                        return StatusCode(500, "Version of group cannot be set");
+                        return Ok(true);
                     }
                 } else {
-                    return StatusCode(500, "Owner of given group not exist");
+                    return StatusCode(500, "[TemplateFileController/edit] " + error);
                 }
+            } catch (Exception ex) {
+                return StatusCode(500, "[TemplateFileController/edit] " + ex.Message);
             }
-            return Ok();
         }
 
-        private string uploadTemplate(IFormFile file, int ownerId, int groupId, String name, int version) {
-            String fullPath = null;
+        private string uploadTemplate(IFormFile file, int ownerId, int groupId, String name, int version, out string error) {
             try {
+                String fullPath = null;
                 String pathToSave = Path.Combine(Directory.GetCurrentDirectory(), "Resources\\Templates\\" + ownerId + "\\" + groupId);
                 if (!Directory.Exists(pathToSave)) {
                     Directory.CreateDirectory(pathToSave);
@@ -87,46 +156,103 @@ namespace TemplateHandler.Controllers{
                     FileStream stream = new FileStream(fullPath, FileMode.Create);
                     file.CopyTo(stream);
                     stream.Close();
+                    error = null;
                     return fullPath;
                 } else {
-                    return fullPath;
+                    error = null;
+                    return null;
                 }
-            } catch {
-                return fullPath;
+            } catch (Exception ex) {
+                error = "[TemplateFileController/uploadTemplate] " + ex.Message;
+                return null;
             }
         }
 
         [HttpDelete, Route("deletegroup/{id}"), Authorize]
-        public void delete(int id) {
-            context.deleteGroup(id);
+        public IActionResult delete(int id) {
+            try {
+                string error = null;
+                if (context.deleteGroup(id, out error)) {
+                    return Ok(true);
+                } else if (error == null) {
+                    return StatusCode(500, "[TemplateFileController/delete] Cannot delete template group.");
+                } else {
+                    return StatusCode(500, "[TemplateFileController/delete] " + error);
+                }
+            } catch (Exception ex) {
+                return StatusCode(500, "[TemplateFileController/delete] " + ex.Message);
+            }
         }
 
         [HttpGet, Route("detailstemplates/{id}"), Authorize(Roles = "admin")]
-        public IEnumerable<TemplateFileModel> details2(int id) {
-            return context.getTemplatesInGroup(id);
+        public IActionResult details2(int id) {
+            try {
+                string error = null;
+                List<TemplateFileModel> list = context.getTemplatesInGroup(id, out error);
+                if (list != null) {
+                    return Ok(list);
+                } else if(error == null) {
+                    return StatusCode(500, "[TemplateFileController/details2] Cannot find template group.");
+                } else {
+                    return StatusCode(500, "[TemplateFileController/details2] " + error);
+                }
+            } catch (Exception ex) {
+                return StatusCode(500, "[TemplateFileController/details2] " + ex.Message);
+            }
         }
 
         [HttpGet, Route("group/{id}"), Authorize(Roles = "admin")]
-        public GrouppedTemplatesModel getGroup(int id) {
-            return context.getGroup(id);
+        public IActionResult getGroup(int id) {
+            try {
+                string error = null;
+                GrouppedTemplatesModel user = context.getGroup(id, out error);
+                if (user != null) {
+                    return Ok(user);
+                } else if(error == null) {
+                    return StatusCode(500, "[TemplateFileController/getGroup] Cannot find template group.");
+                } else {
+                    return StatusCode(500, "[TemplateFileController/getGroup] " + error);
+                }
+            } catch (Exception ex) {
+                return StatusCode(500, "[TemplateFileController/getGroup] " + ex.Message);
+            }
         }
 
         [HttpGet, Route("teszt/{groupName}/{oid}"), Authorize]
-        public Boolean teszt(string groupName, int oid) {
-            return context.tesztGroupName(groupName, oid);
+        public IActionResult teszt(string groupName, int oid) {
+            try {
+                string error = null;
+                bool answer = context.tesztGroupName(groupName, oid, out error);
+                if (error == null) {
+                    return Ok(answer);
+                } else {
+                    return StatusCode(500, "[TemplateFileController/teszt] " + error);
+                }
+            } catch (Exception ex) {
+                return StatusCode(500, "[TemplateFileController/teszt] " + ex.Message);
+            }
         }
 
         [HttpDelete, Route("removetemplate/{id}"), Authorize]
         public IActionResult removeTemplate(int id) {
-            int groupId = context.removeTemplate(id);
-            if (groupId != -1) {
-                if (context.setMaxVersionDefault(groupId)) {
-                    return Ok();
+            try {
+                string error = null;
+                int groupId = context.removeTemplate(id, out error);
+                if (groupId != -1) {
+                    if (context.setMaxVersionDefault(groupId, out error)) {
+                        return Ok(true);
+                    } else if (error == null) {
+                        return StatusCode(500, "[TemplateFileController/removeTemplate] Group or templates not exist");
+                    } else {
+                        return StatusCode(500, "[TemplateFileController/removeTemplate] " + error);
+                    }
+                } else if(error == null) {
+                    return StatusCode(500, "[TemplateFileController/removeTemplate] Group not exist");
                 } else {
-                    return StatusCode(500, "Group or templates not exist");
+                    return StatusCode(500, "[TemplateFileController/removeTemplate] " + error);
                 }
-            } else {
-                return StatusCode(500, "Group not exist");
+            } catch (Exception ex) {
+                return StatusCode(500, "[TemplateFileController/removeTemplate] " + ex.Message);
             }
         }
     }

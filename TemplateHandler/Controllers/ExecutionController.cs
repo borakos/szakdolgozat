@@ -27,38 +27,47 @@ namespace TemplateHandler.Controllers
 
         [HttpPost, Route("execute"), Authorize, DisableRequestSizeLimit]
         public IActionResult execute(int templateId) {
-            TemplateFileModel templateModel = context.getTemplate(templateId);
-            if (templateModel != null) {
-                string path = uploadData(Request.Form.Files[0], templateModel.ownerId, templateModel.groupId, templateModel.name);
-                if (path != null) {
-                    HttpClient executor = new HttpClient();
-                    executor.BaseAddress = new Uri("http://localhost:50519/api/execute/");
-                    var responseTask = executor.GetAsync("execute?templatePath="+templateModel.path+"&templateType="+templateModel.type+"&dataPath="+path);
-                    responseTask.Wait();
-                    HttpResponseMessage result = responseTask.Result;
-                    var readTask = result.Content.ReadAsAsync<string>();
-                    readTask.Wait();
-                    string answer = readTask.Result;
-                    if (result.IsSuccessStatusCode) {
-                        string type = "application/zip";
-                        HttpContext.Response.ContentType = type;
-                        FileContentResult file = new FileContentResult(System.IO.File.ReadAllBytes(answer), type);
-                        file.FileDownloadName = "solutions.zip";
-                        return file;
+            try {
+                string error = null;
+                TemplateFileModel templateModel = context.getTemplate(templateId, out error);
+                if (templateModel != null) {
+                    string path = uploadData(Request.Form.Files[0], templateModel.ownerId, templateModel.groupId, templateModel.name, out error);
+                    if (path != null) {
+                        HttpClient executor = new HttpClient();
+                        executor.BaseAddress = new Uri("http://localhost:50519/api/execute/");
+                        var responseTask = executor.GetAsync("execute?templatePath=" + templateModel.path + "&templateType=" + templateModel.type + "&dataPath=" + path);
+                        responseTask.Wait();
+                        HttpResponseMessage result = responseTask.Result;
+                        var readTask = result.Content.ReadAsAsync<string>();
+                        readTask.Wait();
+                        string answer = readTask.Result;
+                        if (result.IsSuccessStatusCode) {
+                            string type = "application/zip";
+                            HttpContext.Response.ContentType = type;
+                            FileContentResult file = new FileContentResult(System.IO.File.ReadAllBytes(answer), type);
+                            file.FileDownloadName = "solutions.zip";
+                            return file;
+                        } else {
+                            return StatusCode(500, "[ExecutionController/execute] " + answer);
+                        }
+                    } else if (error == null) {
+                        return StatusCode(500, "[ExecutionController/execute] File upload failed.");
                     } else {
-                        return StatusCode(500, answer);
+                        return StatusCode(500, "[ExecutionController/execute] " + error);
                     }
+                } else if (error == null) {
+                    return StatusCode(500, "[ExecutionController/execute] Given group not exist.");
                 } else {
-                    return StatusCode(500, "File upload failed");
+                    return StatusCode(500, "[ExecutionController/execute] " + error);
                 }
-            } else {
-                return StatusCode(500, "Given group not exist");
+            } catch (Exception ex) {
+                return StatusCode(500, "[ExecutionController/execute] " + ex.Message);
             }
         }
        
-        private string uploadData(IFormFile file, int ownerId, int groupId, String name) {
-            String fullPath = null;
+        private string uploadData(IFormFile file, int ownerId, int groupId, String name, out string error) {
             try {
+                String fullPath = null;
                 String pathToSave = Path.Combine(Directory.GetCurrentDirectory(), "Resources\\Executions\\" + ownerId + "\\" + groupId + "\\" + DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss"));
                 if (!Directory.Exists(pathToSave)) {
                     Directory.CreateDirectory(pathToSave);
@@ -71,18 +80,21 @@ namespace TemplateHandler.Controllers
                     FileStream stream = new FileStream(fullPath, FileMode.Create);
                     file.CopyTo(stream);
                     stream.Close();
+                    error = null;
                     return fullPath;
                 } else {
-                    return fullPath;
+                    error = null;
+                    return null;
                 }
-            } catch {
-                return fullPath;
+            } catch (Exception ex) {
+                error = "[ExecutionController/uploadData] " + ex.Message;
+                return null;
             }
         }
 
-        private string downloadDirectory(IFormFile file, int ownerId, int groupId, String name) {
-            String fullPath = null;
+        private string downloadDirectory(IFormFile file, int ownerId, int groupId, String name, out string error) {
             try {
+                String fullPath = null;
                 String pathToSave = Path.Combine(Directory.GetCurrentDirectory(), "Resources\\Executions\\" + ownerId + "\\" + groupId + "\\" + DateTime.Now.ToString("yyyy_MM_dd_HH_mm_ss"));
                 if (!Directory.Exists(pathToSave)) {
                     Directory.CreateDirectory(pathToSave);
@@ -95,12 +107,15 @@ namespace TemplateHandler.Controllers
                     FileStream stream = new FileStream(fullPath, FileMode.Create);
                     file.CopyTo(stream);
                     stream.Close();
+                    error = null;
                     return fullPath;
                 } else {
+                    error = null;
                     return fullPath;
                 }
-            } catch {
-                return fullPath;
+            } catch (Exception ex) {
+                error = "[ExecutionController/downloadDirectory] " + ex.Message;
+                return null;
             }
         }
     }
