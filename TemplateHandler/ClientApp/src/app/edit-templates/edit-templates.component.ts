@@ -25,7 +25,8 @@ export class EditTemplatesComponent implements OnInit {
 	getTypeName=getTypeName;
 	fileToUpload;
 	userGroups: Observable<UserGroup[]>;
-
+	error:String;
+	errorOccured = false;
 		
 	constructor(private http:HttpClient, private activatedRoute: ActivatedRoute, private location:Location) { 
 	}
@@ -47,6 +48,8 @@ export class EditTemplatesComponent implements OnInit {
 	getUserGroups(id){
 		this.userGroups= this.templateService.getUserGroups(id);
 		this.userGroups.subscribe((response)=> {}, err => {
+			this.error = err.error;
+			this.errorOccured = true;
             console.log(err);
 		});
 	}
@@ -54,6 +57,8 @@ export class EditTemplatesComponent implements OnInit {
 	getTemplates(id){
 		this.groupData= this.templateService.getTemplates(id);
         this.groupData.subscribe((response)=> {}, err => {
+			this.error = err.error;
+			this.errorOccured = true;
             console.log(err);
 		});
 	}
@@ -70,6 +75,8 @@ export class EditTemplatesComponent implements OnInit {
 						this.unique=false;
 					}
 				},err=>{
+					this.error = err.error;
+					this.errorOccured = true;
 					console.log(err);
 				});
 			}else{
@@ -77,6 +84,8 @@ export class EditTemplatesComponent implements OnInit {
 				this.updateGroup(data);
 			}
 		},err=>{
+			this.error = err.error;
+			this.errorOccured = true;
 			console.log(err);
 		});
 	}
@@ -98,10 +107,14 @@ export class EditTemplatesComponent implements OnInit {
 				updated.subscribe(response=> {
 					this.getTemplates(this.groupId);
 				}, err => {
+					this.error = err.error;
+					this.errorOccured = true;
 					console.log(err);
 				});
 			}
 		},err => {
+			this.error = err.error;
+			this.errorOccured = true;
 			console.log(err);
 		});
 	}
@@ -118,12 +131,16 @@ export class EditTemplatesComponent implements OnInit {
 				create.subscribe((result) =>{
 					this.back();
 				},err =>{
+					this.error = err.error;
+					this.errorOccured = true;
 					console.log(err);
 				});
 			}else{
 				this.unique=false;
 			}
 		},err=>{
+			this.error = err.error;
+			this.errorOccured = true;
 			console.log(err);
 		});
 	}
@@ -133,6 +150,8 @@ export class EditTemplatesComponent implements OnInit {
 		removed.subscribe((response)=> {
 			this.getTemplates(this.groupId);
 		}, err => {
+			this.error = err.error;
+			this.errorOccured = true;
 			console.log(err);
 		});
 	}

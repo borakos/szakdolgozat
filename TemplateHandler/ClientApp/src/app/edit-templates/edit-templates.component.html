@@ -1,4 +1,5 @@
-<div>
+<div id="background">
+	<div *ngIf="errorOccured" class="alert alert-danger">{{ error }}</div>
 	<div *ngIf="operation=='create'">
 		<form #createGroupForm="ngForm" (ngSubmit)="createGroup(createGroupForm)">
 			<h2>Create Templates</h2>
@@ -12,7 +13,10 @@
 			<select id="ownerId" name="ownerId" ngModel class="form-control col-sm-3" required>
 				<option *ngFor="let userGroup of userGroups | async" value="{{userGroup.id}}">{{userGroup.name}}</option>
 			</select>
-			<button class="btn btn-success" type="submit">Save</button>
+			<div id="button-holder" class="col-sm-3">
+				<a class="btn btn-secondary text-white back" (click)="back()">Back</a>
+				<button class="btn btn-success" type="submit">Create</button>	
+			</div>
 		</form>
 	</div>
 	
@@ -35,12 +39,12 @@
 						<td>{{ template.name }}</td>
 						<td>{{ getTypeName(template.type) }}</td>
 						<td>{{ template.version }}</td>
-						<td><a class="btn btn-danger" (click)="removeTemplate(template.id)">Delete</a></td>
+						<td><a class="btn btn-danger text-white" (click)="removeTemplate(template.id)">Delete</a></td>
 					</tr>
 				</tbody>
 			</table>
 			<label for="defaultVersion"><h5>Default Version</h5></label>
-			<select id="defaultVersion" name="defaultVersion" ngModel="{{ groupDataF.group.defaultVersion }}" class="form-control col-sm-2" required>
+			<select id="defaultVersion" name="defaultVersion" ngModel="{{ groupDataF.group.defaultVersion }}" class="form-control col-sm-3" required>
 				<option *ngFor="let template of groupDataF.templates" value="{{ template.version }}">{{ template.version }}</option>
 			</select>
 			<label for="groupName"><h5>Group name</h5></label>
@@ -52,8 +56,8 @@
 			<select id="ownerId" name="ownerId" ngModel="{{groupDataF.group.ownerId}}" class="form-control col-sm-3" required>
 				<option *ngFor="let userGroup of userGroups | async" value="{{userGroup.id}}">{{userGroup.name}}</option>
 			</select>
-			<button *ngIf="!addTemplate" class="btn btn-primary" (click)="wantAdd()">Add template</button>
-			<button *ngIf="addTemplate" class="btn btn-primary" (click)="wantAdd()">Withdraw template</button>
+			<button *ngIf="!addTemplate" class="btn btn-info col-sm-3" (click)="wantAdd()">Add template</button>
+			<button *ngIf="addTemplate" class="btn btn-info col-sm-3" (click)="wantAdd()">Withdraw template</button>
 			<div *ngIf="addTemplate">
 				<label for="templateName"><h5>Template name</h5></label>
 				<input type="text" id="templateName" name="templateName" ngModel class="form-control col-sm-3" placeholder="Template Name" required>
@@ -64,10 +68,12 @@
 				</select>
 				<div *ngIf="!choosen" class="alert alert-danger col-sm-3">Template not choosen</div>
 				<input type="file" id="file" #file placeholder="Choose template" (change)="fileChanged(file.files)">
-				<a class="btn btn-primary" (click)="file.click()">Choose template</a>
+				<a class="btn btn-info text-white col-sm-3" (click)="file.click()">Choose template</a>
 			</div>
-			<button class="btn btn-success" type="submit" >Save</button>
+			<div id="button-holder" class="col-sm-3">
+				<a class="btn btn-secondary text-white back" (click)="back()">Back</a>
+				<button class="btn btn-success" type="submit">Save</button>	
+			</div>
 		</form>
 	</div>
-	<button class="btn btn-secondary" (click)="back()">Back</button>
 </div>

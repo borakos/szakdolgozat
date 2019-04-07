@@ -1,19 +1,35 @@
-<h1>Welcome {{user.nativeName}}!</h1>
-<h2>Handbook</h2>
-<p>Handbook will show you the utilisation of this templatehandler service.</p>
-<h2><i class="fa fa-user-o main-icons"></i> User</h2>
-<p>You will be able to interact with the service under the user menu</p>
-<ul>
-    <li>
-      <a routerLink="/user/edit/{{user.id}}"><h5><i class="fa fa-id-card-o"></i> Personal settings</h5></a>
-      <p>Under this option you will be able to change your personal user data, like name, email or password.</p>
-    </li>
-    <li>
-      <a routerLink="/templates"><h5><i class="fa fa-file-word-o"></i> &nbsp;Handle templates</h5></a>
-      <p>Under this option you will be able to maintain the templates which are visible to you, you can remove, update, upload template types.</p>
-    </li>
-    <li>
-      <a routerLink="/execution"><h5><i class="fa fa-file-code-o"></i> &nbsp;Executions</h5></a>
-      <p>Under this option you will be able to make complete files from template and data file, you can upload the data file and choose the template you want.</p>
-    </li>
-</ul>
+<div id="background">
+	<h1>Welcome {{user.nativeName}}!</h1>
+	<h2>Handbook</h2>
+	<p>Handbook will show you the utilisation of this templatehandler service.</p>
+	<h2><i class="fa fa-user-o main-icons"></i> User</h2>
+	<p>You will be able to interact with the service under the user menu</p>
+	<ul>
+		<li>
+		<a routerLink="/user/edit/{{user.id}}"><h5><i class="fa fa-id-card-o"></i> Personal settings</h5></a>
+		<p>Under this option you will be able to change your personal user data, like name, email or password.</p>
+		</li>
+		<li>
+		<a routerLink="/templates"><h5><i class="fa fa-file-word-o"></i> &nbsp;Handle templates</h5></a>
+		<p>Under this option you will be able to maintain the templates which are visible to you, you can remove, update, upload template types.</p>
+		</li>
+		<li>
+		<a routerLink="/execution"><h5><i class="fa fa-file-code-o"></i> &nbsp;Executions</h5></a>
+		<p>Under this option you will be able to make complete files from template and data file, you can upload the data file and choose the template you want.</p>
+		</li>
+	</ul>
+	<div *ngIf="user.role == 'admin'">
+		<h2><i class="fa fa-user main-icons"></i> Admin</h2>
+		<p>You will be able to maintain the users and user groups under the admin menu</p>
+		<ul>
+			<li>
+			<a routerLink="/users"><h5><i class="fa fa-group"></i> Maintain users</h5></a>
+			<p>Under this option you will be able to maintain user data, like name, email or password.</p>
+			</li>
+			<li>
+			<a routerLink="/usergroups"><h5><i class="fa fa-address-book"></i> Maintain groups</h5></a>
+			<p>Under this option you will be able to maintain the user groups</p>
+			</li>
+		</ul>
+	</div>
+</div>

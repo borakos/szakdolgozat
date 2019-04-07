@@ -15,6 +15,8 @@ export class UsersComponent implements OnInit {
 	getRoleName=getRoleName;
 	users:Observable<User[]>;
 	userService= new UserService(this.http);
+	error: string;
+	errorOccured = false;	
 
     constructor(private http: HttpClient) { 
 	}
@@ -26,6 +28,8 @@ export class UsersComponent implements OnInit {
 	getAllUser(){
 		this.users=this.userService.getAllUser();
 		this.users.subscribe((response)=>{}, err => {
+			this.errorOccured = true;
+			this.error = err.error;
 			console.log(err);
 		});
 	}
@@ -35,6 +39,8 @@ export class UsersComponent implements OnInit {
 		deleted.subscribe((response)=>{
 			this.getAllUser();
 		}, err => {
+			this.errorOccured = true;
+			this.error = err.error;
 			console.log(err);
 		});
 	}

@@ -13,6 +13,8 @@ export class UserGroupsComponent implements OnInit {
 
   	userGroups:Observable<UserGroup[]>;
 	userGroupService= new UserGroupService(this.http);
+	error:String;
+	errorOccured = false;
 
     constructor(private http: HttpClient) { 
 	}
@@ -24,6 +26,8 @@ export class UserGroupsComponent implements OnInit {
 	getAllUserGroup(){
 		this.userGroups=this.userGroupService.getAllUserGroup();
 		this.userGroups.subscribe((response)=>{}, err => {
+			this.error = err.error;
+			this.errorOccured = true;
 			console.log(err);
 		});
 	}
@@ -33,6 +37,8 @@ export class UserGroupsComponent implements OnInit {
 		deleted.subscribe((response)=>{
 			this.getAllUserGroup();
 		}, err => {
+			this.error = err.error;
+			this.errorOccured = true;
 			console.log(err);
 		});
 	}

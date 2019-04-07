@@ -54,47 +54,67 @@ namespace OfficeHandlerService.Office {
                 Excel.Application app = null;
                 Excel.Workbook wb = null;
                 try {
-                    String[] paths = copyBaseFile(path, destination, wbs.Count);
-                    app = new Excel.Application();
-                    for (int i = 0; i < paths.Length; i++) {
-                        wb = app.Workbooks.Open(paths[i]);
-                        replaceSimpleValues(wb, wbs[i].simpleValues);
-                        replaceEnumeratedValues(wb, wbs[i].enumeratedValues);
-                        //replaceTableValues(wb, wbs[i].tables);
-                        wb.Save();
+                    string error = null;
+                    String[] paths = copyBaseFile(path, destination, wbs.Count, out error);
+                    if (path != null) {
+                        app = new Excel.Application();
+                        for (int i = 0; i < paths.Length; i++) {
+                            wb = app.Workbooks.Open(paths[i]);
+                            replaceSimpleValues(wb, wbs[i].simpleValues);
+                            replaceEnumeratedValues(wb, wbs[i].enumeratedValues);
+                            //replaceTableValues(wb, wbs[i].tables);
+                            wb.Save();
+                        }
+                        app.Quit();
+                        try {
+                            ExcelKiller.killProcess(app);
+                        } catch (Exception exc) {
+                            return "[ExcelHandler/execute] " + exc.Message;
+                        }
+                        return null;
+                    } else {
+                        return "[ExcelHandler/execute] " + error;
                     }
-                    app.Quit();
-                    ExcelKiller.killProcess(app);
-                    return null;
                 } catch (Exception ex) {
-                    Console.WriteLine(ex.Message);
                     if (wb != null) {
                         wb.Save();
                     }
                     if (app != null) {
                         app.Quit();
-                        ExcelKiller.killProcess(app);
+                        try {
+                            ExcelKiller.killProcess(app);
+                        }catch (Exception exc) {
+                            return "[ExcelHandler/execute] " + exc.Message;
+                        }
                     }
-                    return ex.Message;
+                    return "[ExcelHandler/execute] " + ex.Message;
                 }
             } else {
-                return "There are no workbooks";
+                return "[ExcelHandler/execute] There are no workbooks.";
             }
         }
 
         private void replaceSimpleValues(Excel.Workbook wb, Dictionary<String, String> simpleValues) {
-            Excel.Worksheet sheet = (Excel.Worksheet)wb.ActiveSheet;
-            Excel.Range range = sheet.Cells;
-            foreach (KeyValuePair<String, String> item in simpleValues) {
-                range.Replace(What: "<#<" + item.Key + ">#>", Replacement: item.Value, MatchCase:true);
+            try {
+                Excel.Worksheet sheet = (Excel.Worksheet)wb.ActiveSheet;
+                Excel.Range range = sheet.Cells;
+                foreach (KeyValuePair<String, String> item in simpleValues) {
+                    range.Replace(What: "<#<" + item.Key + ">#>", Replacement: item.Value, MatchCase: true);
+                }
+            } catch (Exception ex) {
+                throw;
             }
         }
 
         private void replaceEnumeratedValues(Excel.Workbook wb, Dictionary<String, ExcelEnumeration> enumeratedValues) {
-            Excel.Worksheet sheet = (Excel.Worksheet)wb.ActiveSheet;
-            Excel.Range range = sheet.Cells;
-            foreach (KeyValuePair<String, ExcelEnumeration> item in enumeratedValues) {
-                range.Replace(What: "<#<" + item.Key + ">#>", Replacement: item.Value.ToString(), MatchCase: true);
+            try {
+                Excel.Worksheet sheet = (Excel.Worksheet)wb.ActiveSheet;
+                Excel.Range range = sheet.Cells;
+                foreach (KeyValuePair<String, ExcelEnumeration> item in enumeratedValues) {
+                    range.Replace(What: "<#<" + item.Key + ">#>", Replacement: item.Value.ToString(), MatchCase: true);
+                }
+            } catch (Exception ex) {
+                throw;
             }
         }
 
@@ -129,38 +149,44 @@ namespace OfficeHandlerService.Office {
             }
         }*/
 
-        public override MemoryStream toStream() {
-            MemoryStream stream = new MemoryStream();
-            StreamWriter writer = new StreamWriter(stream);
-            if (wbs != null) {
-                foreach (ExcelWorkbook wb in wbs) {
-                    writer.WriteLine("Workbook:");
-                    writer.WriteLine("\tSimple values:");
-                    foreach (KeyValuePair<String, String> values in wb.simpleValues) {
-                        writer.WriteLine("\t\t{0}: {1}", values.Key, values.Value);
-                    }
-                    writer.WriteLine("\tEnumerated values:");
-                    foreach (KeyValuePair<String, ExcelEnumeration> item in wb.enumeratedValues) {
-                        writer.WriteLine("\t\t" + item.Key + ": " + item.Value);
-                    }
-                    writer.WriteLine("\tTable values:");
-                    foreach (ExcelTable item in wb.tables) {
-                        writer.WriteLine("\t\t" + item.name + ":");
-                        for (int i = 0; i < item.items.Length; i++) {
-                            writer.Write("\t\t\t");
-                            for (int j = 0; j < item.items[i].Length; j++) {
-                                writer.Write(item.items[i][j] + ", ");
+        public override MemoryStream toStream(out string error) {
+            try {
+                MemoryStream stream = new MemoryStream();
+                StreamWriter writer = new StreamWriter(stream);
+                if (wbs != null) {
+                    foreach (ExcelWorkbook wb in wbs) {
+                        writer.WriteLine("Workbook:");
+                        writer.WriteLine("\tSimple values:");
+                        foreach (KeyValuePair<String, String> values in wb.simpleValues) {
+                            writer.WriteLine("\t\t{0}: {1}", values.Key, values.Value);
+                        }
+                        writer.WriteLine("\tEnumerated values:");
+                        foreach (KeyValuePair<String, ExcelEnumeration> item in wb.enumeratedValues) {
+                            writer.WriteLine("\t\t" + item.Key + ": " + item.Value);
+                        }
+                        writer.WriteLine("\tTable values:");
+                        foreach (ExcelTable item in wb.tables) {
+                            writer.WriteLine("\t\t" + item.name + ":");
+                            for (int i = 0; i < item.items.Length; i++) {
+                                writer.Write("\t\t\t");
+                                for (int j = 0; j < item.items[i].Length; j++) {
+                                    writer.Write(item.items[i][j] + ", ");
+                                }
+                                writer.WriteLine();
                             }
-                            writer.WriteLine();
                         }
                     }
+                } else {
+                    writer.Write("There are no workbooks");
                 }
-            } else {
-                writer.Write("There are no workbooks");
+                writer.Flush();
+                stream.Position = 0;
+                error = null;
+                return stream;
+            } catch (Exception ex) {
+                error = "[ExcelHandler/toStream] " + ex.Message;
+                return null;
             }
-            writer.Flush();
-            stream.Position = 0;
-            return stream;
         }
 
         private static class ExcelKiller {
@@ -168,9 +194,13 @@ namespace OfficeHandlerService.Office {
             static extern int GetWindowThreadProcessId(int hWnd, out int processId);
 
             static public void killProcess(Excel.Application app) {
-                int id;
-                GetWindowThreadProcessId(app.Hwnd, out id);
-                Process.GetProcessById(id).Kill();
+                try {
+                    int id;
+                    GetWindowThreadProcessId(app.Hwnd, out id);
+                    Process.GetProcessById(id).Kill();
+                } catch (Exception ex) {
+                    throw;
+                }
             }
         }
 

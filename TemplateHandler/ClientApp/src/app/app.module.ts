@@ -90,6 +90,10 @@ import { EditUserGroupsComponent } from './edit-usergroups/edit-usergroups.compo
 			component:HomeComponent,
 			canActivate: [AuthGuard],
 		},
+		{
+			path:'**',
+			redirectTo: 'login'
+		}
 		])
 	],
 	exports: [RouterModule],

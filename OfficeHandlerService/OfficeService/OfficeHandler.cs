@@ -12,22 +12,28 @@ namespace OfficeHandlerService.Office {
 
         public abstract string execute(String path, String destination);
 
-        public abstract MemoryStream toStream();
+        public abstract MemoryStream toStream(out string error);
 
-        protected String[] copyBaseFile(String path, String destinationFolder, int piece) {
-            List<String> paths = new List<string>();
-            String[] pathArray = path.Split(new String[] { "\\" }, StringSplitOptions.RemoveEmptyEntries);
-            int filenamepos = pathArray.Length - 1;
-            String[] filename = pathArray[filenamepos].Split('.');
-            if (!Directory.Exists(destinationFolder)) {
-                Directory.CreateDirectory(destinationFolder);
+        protected String[] copyBaseFile(String path, String destinationFolder, int piece, out string error) {
+            try {
+                List<String> paths = new List<string>();
+                String[] pathArray = path.Split(new String[] { "\\" }, StringSplitOptions.RemoveEmptyEntries);
+                int filenamepos = pathArray.Length - 1;
+                String[] filename = pathArray[filenamepos].Split('.');
+                if (!Directory.Exists(destinationFolder)) {
+                    Directory.CreateDirectory(destinationFolder);
+                }
+                for (int i = 1; i <= piece; i++) {
+                    string solutionpath = destinationFolder + "\\" + filename[0] + "_solution_" + i + "." + filename[1];
+                    paths.Add(solutionpath);
+                    File.Copy(path, solutionpath, true);
+                }
+                error = null;
+                return paths.ToArray();
+            } catch(Exception ex) {
+                error = "[OfficeHandler/copyBaseFile] " + ex.Message;
+                return null;
             }
-            for (int i = 1; i <= piece; i++) {
-                string solutionpath = destinationFolder + "\\" + filename[0] + "_solution_" + i + "." + filename[1];
-                paths.Add(solutionpath);
-                File.Copy(path, solutionpath, true);
-            }
-            return paths.ToArray();
         }
     }
 }

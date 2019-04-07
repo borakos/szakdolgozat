@@ -19,3 +19,18 @@ input{
 a{
 	color: aliceblue;
 }
+
+button{
+	margin-right: 0;
+}
+
+#button-holder{
+	display: flex;
+	justify-content: space-between;
+	padding: 0;
+}
+
+.back{
+	margin-top: 10px;
+	margin-bottom: 10px;
+}

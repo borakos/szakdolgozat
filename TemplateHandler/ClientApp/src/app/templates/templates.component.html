@@ -1,37 +1,40 @@
-<h2>Maintain Templates</h2>
-<br/>
-<table class="table table-striped table-hover">
-	<thead>
-		<tr>
-			<th>Name</th>
-			<th>Description</th>
-			<th>Property of</th>
-			<th>Latest Version</th>
-			<th>Default Version</th>
-			<th>Number of files</th>
-			<th>Modify</th>
-		</tr>
-	</thead>
-	<tbody>
-		<tr *ngFor="let group of groups | async">
-			<td>{{ group.groupName }}</td>
-			<td>{{ group.description }}</td>
-			<td>{{ group.ownerName }}</td>
-			<td>{{ group.latestVersion }}</td>
-			<td>{{ group.defaultVersion }}</td>
-			<td>{{ group.fileNumber }}</td>
-			<td><a class="btn btn-primary" routerLink="/templates/edit/{{group.id}}">Edit</a><button class="btn btn-danger" (click)="deleteGroup(group.id)">Delete</button></td>
-		</tr>
-	</tbody>
-	<tfoot>
-		<tr>
-			<td></td>
-			<td></td>
-			<td></td>
-			<td></td>
-			<td></td>
-			<td></td>
-			<td><a class="btn btn-success" routerLink="/templates/create/0">Create Templates</a></td>
-		</tr>
-	</tfoot>
-</table>
+<div id="background">
+	<h2>Maintain Templates</h2>
+	<br/>
+	<div *ngIf="errorOccured" class="alert alert-danger">{{ error }}</div>
+	<table class="table table-striped table-hover">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Description</th>
+				<th>Property of</th>
+				<th>Latest Version</th>
+				<th>Default Version</th>
+				<th>Number of files</th>
+				<th>Modify</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr *ngFor="let group of groups | async">
+				<td>{{ group.groupName }}</td>
+				<td>{{ group.description }}</td>
+				<td>{{ group.ownerName }}</td>
+				<td>{{ group.latestVersion }}</td>
+				<td>{{ group.defaultVersion }}</td>
+				<td>{{ group.fileNumber }}</td>
+				<td><a class="btn btn-primary text-white" routerLink="/templates/edit/{{group.id}}">Edit</a><button class="btn btn-danger text-white" (click)="deleteGroup(group.id)">Delete</button></td>
+			</tr>
+		</tbody>
+		<tfoot>
+			<tr>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td><a class="btn btn-success text-white" routerLink="/templates/create/0">Create Templates</a></td>
+			</tr>
+		</tfoot>
+	</table>
+</div>

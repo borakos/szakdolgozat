@@ -12,10 +12,21 @@ h5{
 	margin: 0;
 }
 
-button{
-	margin-top: 10px;
+select{
+	margin-bottom: 10px;
 }
 
-select{
+button{
+	margin-right: 0;
+}
+
+#button-holder{
+	display: flex;
+	justify-content: space-between;
+	padding: 0;
+}
+
+.back{
+	margin-top: 10px;
 	margin-bottom: 10px;
 }

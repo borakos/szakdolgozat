@@ -14,6 +14,8 @@ export class TemplatesComponent implements OnInit {
 	groups: Observable<GrouppedTemplates[]>;
 	user: User;
 	templateService= new TemplateService(this.http);
+	error:String;
+	errorOccured = false;
 
 	constructor(private http:HttpClient) { }
 
@@ -25,6 +27,8 @@ export class TemplatesComponent implements OnInit {
 	getGrouppedTemplates(id){
 		this.groups=this.templateService.getGrouppedTemplates(id);
         this.groups.subscribe((response)=> {}, err => {
+			this.error = err.error;
+			this.errorOccured = true;
             console.log(err);
 		});
 	}
@@ -34,6 +38,8 @@ export class TemplatesComponent implements OnInit {
         deletion.subscribe((response)=> {
 			this.getGrouppedTemplates(this.user.id);
         }, err => {
+			this.error = err.error;
+			this.errorOccured = true;
             console.log(err);
 		});
 	}

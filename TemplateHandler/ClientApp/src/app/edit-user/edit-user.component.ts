@@ -23,6 +23,8 @@ export class EditUserComponent implements OnInit {
 	role:String;
 	getRoleName=getRoleName;
 	userService= new UserService(this.http);
+	error:String;
+	errorOccured = false;
 		
 	constructor(private http:HttpClient, private activatedRoute: ActivatedRoute, private location:Location) { 
 	}
@@ -52,10 +54,14 @@ export class EditUserComponent implements OnInit {
 						createdUser.subscribe((response) => {
 							this.location.back();
 						}, err => {
+							this.errorOccured = true;
+							this.error = err.error;
 							console.log(err);
 						});
 					}
 				},err=>{
+					this.errorOccured = true;
+					this.error = err.error;
 					console.log(err);
 				})
 			}
@@ -84,12 +90,16 @@ export class EditUserComponent implements OnInit {
 								this.unique=false;
 							}
 						}, err=>{
+							this.errorOccured = true;
+							this.error = err.error;
 							console.log(err);
 						});
 					}else{
 						this.updateUser(data);
 					}
 				}, err => {
+					this.errorOccured = true;
+					this.error = err.error;
 					console.log(err);
 				});
 			}
@@ -106,9 +116,13 @@ export class EditUserComponent implements OnInit {
 			updatedUser.subscribe((response)=> {
 				this.location.back();
 			}, err => {
+				this.errorOccured = true;
+				this.error = err.error;
 				console.log(err);
 			});
 		},err=>{
+			this.errorOccured = true;
+			this.error = err.error;
 			console.log(err);
 		});
 	}
@@ -116,6 +130,8 @@ export class EditUserComponent implements OnInit {
 	getUser(id){
 		this.user=this.userService.getUser(id);
 		this.user.subscribe((response)=>{}, err => {
+			this.errorOccured = true;
+			this.error = err.error;
 			console.log(err);
 		});
 	}

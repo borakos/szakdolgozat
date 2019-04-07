@@ -27,6 +27,9 @@ export class EditUserGroupsComponent implements OnInit {
 	users: Observable<User[]>;
 	members: Observable<UserGroupMember[]>;
 	getRightName=getRightName;
+	error:String;
+	errorOccured = false;
+	
 
 		
 	constructor(private http:HttpClient, private activatedRoute: ActivatedRoute, private location:Location) { 
@@ -48,10 +51,14 @@ export class EditUserGroupsComponent implements OnInit {
 	getGroup(id){
 		this.groupData= this.userGroupService.getUserGroup(id);
         this.groupData.subscribe((response)=> {}, err => {
+			this.error = err.error;
+			this.errorOccured = true;
             console.log(err);
 		});
 		this.members= this.userGroupService.getUserGroupMembers(id);
 		this.members.subscribe((response)=> {}, err => {
+			this.error = err.error;
+			this.errorOccured = true;
             console.log(err);
 		});
 	}
@@ -68,6 +75,8 @@ export class EditUserGroupsComponent implements OnInit {
 						this.unique=false;
 					}
 				},err=>{
+					this.error = err.error;
+					this.errorOccured = true;
 					console.log(err);
 				});
 			}else{
@@ -75,6 +84,8 @@ export class EditUserGroupsComponent implements OnInit {
 				this.updateGroup(data);
 			}
 		},err=>{
+			this.error = err.error;
+			this.errorOccured = true;
 			console.log(err);
 		});
 	}
@@ -91,10 +102,14 @@ export class EditUserGroupsComponent implements OnInit {
 				updated.subscribe(response=> {
 					this.getGroup(this.groupId);
 				}, err => {
+					this.error = err.error;
+					this.errorOccured = true;
 					console.log(err);
 				});
 			}
 		},err => {
+			this.error = err.error;
+			this.errorOccured = true;
 			console.log(err);
 		});
 	}
@@ -110,12 +125,16 @@ export class EditUserGroupsComponent implements OnInit {
 				create.subscribe((result) =>{
 					this.back();
 				},err =>{
+					this.error = err.error;
+					this.errorOccured = true;
 					console.log(err);
 				});
 			}else{
 				this.unique=false;
 			}
 		},err=>{
+			this.error = err.error;
+			this.errorOccured = true;
 			console.log(err);
 		});
 	}
@@ -123,11 +142,15 @@ export class EditUserGroupsComponent implements OnInit {
 	removeUser(id){
 		let removed = this.userGroupService.removeUser(id);
 		removed.subscribe((response)=> {
-			let members = this.userGroupService.getUserGroupMembers(this.groupId);
-			members.subscribe((response)=> {}, err => {
-				console.log(err);
-			});
 		}, err => {
+			this.error = err.error;
+			this.errorOccured = true;
+			console.log(err);
+		});
+		this.members = this.userGroupService.getUserGroupMembers(this.groupId);
+		this.members.subscribe((response)=> {}, err => {
+			this.error = err.error;
+			this.errorOccured = true;
 			console.log(err);
 		});
 	}
@@ -149,11 +172,15 @@ export class EditUserGroupsComponent implements OnInit {
 		if(filter == ""){
 			this.users = this.userService.getAllUser();
 			this.users.subscribe((response)=> {}, err => {
+				this.error = err.error;
+				this.errorOccured = true;
 				console.log(err);
 			});
 		}else{
 			this.users = this.userService.getFilteredUsers(filter);
 			this.users.subscribe((response)=> {}, err => {
+				this.error = err.error;
+				this.errorOccured = true;
 				console.log(err);
 			});
 		}
@@ -164,6 +191,8 @@ export class EditUserGroupsComponent implements OnInit {
 		if(this.addUser){
 			this.users = this.userService.getAllUser();
 			this.users.subscribe((response)=> {}, err => {
+				this.error = err.error;
+				this.errorOccured = true;
 				console.log(err);
 			});
 		}

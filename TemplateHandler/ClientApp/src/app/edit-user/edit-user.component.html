@@ -1,4 +1,6 @@
-<div>
+<div id="background">
+	<div *ngIf="errorOccured" class="alert alert-danger">{{ error }}</div>
+	<button  *ngIf="errorOccured" class="btn btn-secondary text-white" (click)="back()">Back</button>
 	<form *ngIf="operation=='create'" #createUserForm="ngForm" (ngSubmit)="createUser(createUserForm)">
 		<h2>Create User</h2>
 		<br/>
@@ -22,7 +24,10 @@
 		<div *ngIf="unmatch" class="alert alert-danger col-sm-3">Passwords doesn't match</div>
 		<label for="repassword"><h5>Password Again</h5></label>
 		<input type="password" id="repassword" name="repassword" ngModel class="form-control col-sm-3" placeholder="Password" required>
-		<button class="btn btn-success" type="submit">Create</button>
+		<div id="button-holder" class="col-sm-3">
+			<a class="btn btn-secondary text-white back" (click)="back()">Back</a>
+			<button class="btn btn-success" type="submit">Create</button>	
+		</div>
 	</form>
 		
 	<form *ngIf="operation=='edit' && (user | async) as userF" #editUserForm="ngForm" (ngSubmit)="editUser(editUserForm)">
@@ -48,8 +53,9 @@
 		<div *ngIf="unmatch" class="alert alert-danger col-sm-3">Passwords doesn't match</div>
 		<label for="repassword"><h5>Password Again</h5></label>
 		<input type="password" id="repassword" name="repassword" ngModel class="form-control col-sm-3" placeholder="Password" required>
-		<button class="btn btn-success" type="submit">Save</button>
+		<div id="button-holder" class="col-sm-3">
+			<a class="btn btn-secondary text-white back" (click)="back()">Back</a>
+			<button class="btn btn-success" type="submit">Save</button>	
+		</div>
 	</form>
-
-	<button class="btn btn-secondary" (click)="back()">Back</button>
 </div>
