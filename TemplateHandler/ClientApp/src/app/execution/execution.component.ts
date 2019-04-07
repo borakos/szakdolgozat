@@ -21,7 +21,7 @@ export class ExecutionComponent implements OnInit {
 	clicked = false;
 	choosen = false;
 	error = null;
-	
+	executing = false;
 
 	constructor(private http:HttpClient) { }
 
@@ -52,6 +52,7 @@ export class ExecutionComponent implements OnInit {
 
 	generate(version){
 		this.clicked = true;
+		this.executing=true;
 		this.templateData.subscribe((response : GroupData)=> {
 			let i=0;
 			while((i<response.templates.length) && (response.templates[i].version != version)){
@@ -83,11 +84,13 @@ export class ExecutionComponent implements OnInit {
 					link.remove();
 				},100);
 				this.error = "none";
+				this.executing = false;
 			},err =>{
 				(new Response(err.error)).text().then(function(val){
 					err.error = val;
 				});
 				this.error = "error";
+				this.executing = false;
 				console.log(err);
 			});
 		}

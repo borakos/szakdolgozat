@@ -29,6 +29,7 @@ export class EditUserGroupsComponent implements OnInit {
 	getRightName=getRightName;
 	error:String;
 	errorOccured = false;
+	wantChangeRight = -1;
 	
 
 		

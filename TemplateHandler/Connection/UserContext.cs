@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using TemplateHandler.Models;
+using TemplateHandler.Services;
 
 namespace TemplateHandler.Connection {
     public class UserContext {
@@ -137,13 +138,50 @@ namespace TemplateHandler.Connection {
 
         public bool validateUser(string userName, string password, out string error) {
             try {
+                string salt = null;
+                bool valid = false;
+                MySqlConnection conn = getConnection();
+                string sql = "Select `salt` from `users` where `user_name`=@user_name";
+                conn.Open();
+                MySqlCommand cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@user_name", userName);
+                MySqlDataReader reader = cmd.ExecuteReader();
+                if (reader.Read()) {
+                    salt = reader["salt"].ToString();
+                }
+                conn.Close();
+                if (salt != null) {
+                    sql = "Select * from `users` where `user_name`=@user_name And `password`=@password";
+                    conn.Open();
+                    cmd = new MySqlCommand(sql, conn);
+                    cmd.Parameters.AddWithValue("@user_name", userName);
+                    cmd.Parameters.AddWithValue("@password", HashCreator.stringToSha256(password,salt));
+                    reader = cmd.ExecuteReader();
+                    if (reader.Read()) {
+                        valid = true;
+                    }
+                    conn.Close();
+                    error = null;
+                    return valid;
+                } else {
+                    error = null;
+                    return false;
+                }
+            }catch (Exception ex) {
+                error = "[UserContext/validateUser] " + ex.Message;
+                return false;
+            }
+        }
+
+        public bool validateUserOriginal(string userName, string password, out string error) {
+            try {
                 bool valid = false;
                 MySqlConnection conn = getConnection();
                 string sql = "Select * from `users` where `user_name`=@user_name And `password`=@password";
                 conn.Open();
                 MySqlCommand cmd = new MySqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@user_name", userName);
-                cmd.Parameters.AddWithValue("@password", password);
+                cmd.Parameters.AddWithValue("@password", HashCreator.stringToSha256(password, ""));
                 MySqlDataReader reader = cmd.ExecuteReader();
                 if (reader.Read()) {
                     valid = true;
@@ -151,7 +189,7 @@ namespace TemplateHandler.Connection {
                 conn.Close();
                 error = null;
                 return valid;
-            }catch (Exception ex) {
+            } catch (Exception ex) {
                 error = "[UserContext/validateUser] " + ex.Message;
                 return false;
             }
@@ -166,7 +204,7 @@ namespace TemplateHandler.Connection {
                         MySqlConnection conn = getConnection();
                         string sql = "Update `users` Set `user_name`=@user_name, `email`=@email, `native_name`=@native_name ";
                         if (newUser.password != "") {
-                            sql += ",`password`=@password ";
+                            sql += ",`password`=@password, `salt`=@salt ";
                         }
                         if (controlUser.role == UserModel.Role.admin) {
                             sql += ", `role`=@role ";
@@ -191,7 +229,9 @@ namespace TemplateHandler.Connection {
                             cmd.Parameters.AddWithValue("@role", newUser.role.ToString());
                         }
                         if (newUser.password != "") {
-                            cmd.Parameters.AddWithValue("@password", newUser.password);
+                            string salt = HashCreator.createSalt();
+                            cmd.Parameters.AddWithValue("@password", HashCreator.stringToSha256(newUser.password, salt));
+                            cmd.Parameters.AddWithValue("@salt", salt);
                         }
                         cmd.ExecuteNonQuery();
                         conn.Close();
@@ -219,13 +259,15 @@ namespace TemplateHandler.Connection {
 
         public bool createUser(UserModel user, out string error) {
             try {
+                string salt = HashCreator.createSalt();
                 MySqlConnection conn = getConnection();
-                string sql = "Insert into `users`(`user_name`,`role`,`email`,`native_name`,`password`) Values(@user_name,@role,@email,@native_name,@password)";
+                string sql = "Insert into `users`(`user_name`,`role`,`email`,`native_name`,`password`,`salt`) Values(@user_name,@role,@email,@native_name,@password,@salt)";
                 conn.Open();
                 MySqlCommand cmd = new MySqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@user_name", user.userName);
                 cmd.Parameters.AddWithValue("@role", user.role.ToString());
-                cmd.Parameters.AddWithValue("@password", user.password);
+                cmd.Parameters.AddWithValue("@password", HashCreator.stringToSha256(user.password, salt));
+                cmd.Parameters.AddWithValue("@salt", salt);
                 if (user.nativeName == "") {
                     cmd.Parameters.AddWithValue("@native_name", DBNull.Value);
                 } else {

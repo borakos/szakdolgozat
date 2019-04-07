@@ -2,8 +2,9 @@
 	<h2>Execution</h2>
 	<div *ngIf="(templates | async) as templatesF" class="col-sm-3">
 		<h3>Templates</h3>
-		<div *ngIf="(error != 'none') && (error != null)" class="alert alert-danger">Error occured please check console for further information</div>
-		<div *ngIf="error == 'none'" class="alert alert-success">Execution was successfully</div>
+		<div *ngIf="(error != 'none') && (error != null) && !executing" class="alert alert-danger">Error occured please check console for further information</div>
+		<div *ngIf="(error == 'none') && !executing" class="alert alert-success">Execution was successfully</div>
+		<div *ngIf="executing" class="alert alert-info">Execution in progress...</div>
 		<select #group ngModel class="form-control" (change)="getGroup(group.value)">
 			<option *ngFor="let template of templatesF" value="{{template.id}}">{{template.groupName}}</option>
 		</select><br>
