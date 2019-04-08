@@ -51,7 +51,7 @@ export class UserGroupService{
 	}
 
 	//Components: edit-usergroup
-	editGroup(type, gid, description, gname, uid=null, rights=null):Observable<boolean>{
+	editGroup(type, gid, description, gname, uid="-1", rights="-1"):Observable<boolean>{
 		let params= new HttpParams()
 						.set("groupId",gid)
 						.set("description",description)

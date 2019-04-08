@@ -172,6 +172,24 @@ namespace TemplateHandler.Connection {
             }
         }
 
+        public bool editMember(int userGroupId, int rights, out string error) {
+            try {
+                MySqlConnection conn = getConnection();
+                string sql = "Update `users_user_groups` Set `rights`=@rights Where `id`=@userGroupId";
+                conn.Open();
+                MySqlCommand cmd = new MySqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@userGroupId", userGroupId);
+                cmd.Parameters.AddWithValue("@rights", rights);
+                cmd.ExecuteNonQuery();
+                conn.Close();
+                error = null;
+                return true;
+            } catch (Exception ex) {
+                error = "[UserGroupContext/editMember] " + ex.Message;
+                return false;
+            }
+        }
+
         public bool createGroup(UserGroupModel group, out string error) {
             try {
                 MySqlConnection conn = getConnection();

@@ -107,11 +107,13 @@ namespace TemplateHandler.Controllers
         public IActionResult edit(string method, int groupId, string description, string groupName, int userId, int rights) {
             try {
                 string error = null;
-                bool answer = context.editGroup(groupId, description, groupName, out error);
-                if (answer) {
-                    if (method == "all") {
-                        answer = context.createMember(groupId, userId, rights, out error);
-                        if (!answer) {
+                if (context.editGroup(groupId, description, groupName, out error)) {
+                    if (method == "addUser") {
+                        if (!context.createMember(groupId, userId, rights, out error)) {
+                            return StatusCode(500, "[UserGroupController/edit] " + error);
+                        }
+                    } else if (method == "editUser") {
+                        if (!context.editMember(userId, rights, out error)) {
                             return StatusCode(500, "[UserGroupController/edit] " + error);
                         }
                     }

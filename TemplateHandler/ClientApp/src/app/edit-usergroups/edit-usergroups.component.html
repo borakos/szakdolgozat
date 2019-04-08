@@ -44,9 +44,12 @@
 			<input type="text" id="groupName" name="groupName" ngModel="{{ groupDataF.name }}" class="form-control col-sm-3" placeholder="Group Name" required>
 			<label for="description"><h5>Description</h5></label>
 			<input type="text" id="description" name="description" ngModel="{{ groupDataF.description }}" class="form-control col-sm-3" placeholder="Description" required>
-			<button *ngIf="!addUser" class="btn btn-info col-sm-3" (click)="wantAdd()">Add user</button>
-			<button *ngIf="addUser" class="btn btn-info col-sm-3" (click)="wantAdd()">Withdraw user</button>
-			<div *ngIf="addUser">
+			<button *ngIf="!addUser && !editUser" class="btn btn-info col-sm-3" (click)="wantAdd()">Add user</button>
+			<button *ngIf="addUser  && !editUser" class="btn btn-info col-sm-3" (click)="wantAdd()">Withdraw user</button>
+			<br *ngIf="!addUser && !editUser"/>
+			<button *ngIf="!editUser  && !addUser" class="btn btn-info col-sm-3" (click)="wantEdit()">Edit user</button>
+			<button *ngIf="editUser  && !addUser" class="btn btn-info col-sm-3" (click)="wantEdit()">Withdraw user</button>
+			<div *ngIf="addUser  && !editUser">
 				<label for="userName"><h5>User name</h5></label>
 				<input type="text" #nameFilter id="nameFilter" name="nameFilter" ngModel class="form-control col-sm-3" placeholder="User Name filter" (input)="filtering(nameFilter.value)">
 				<select id="userName" name="userName" ngModel class="form-control col-sm-3" required>
@@ -59,6 +62,20 @@
 					<option value="1">Execute</option>
 					<option value="7">All</option>
 				</select>
+			</div>
+			<div *ngIf="editUser && !addUser">
+				<label for="userName"><h5>User name</h5></label>
+				<select id="userName" name="userName" #userName ngModel class="form-control col-sm-3" required (change)="loadRight(userName.value)">
+					<option *ngFor="let member of members | async" value="{{member.id}}">{{member.userName}}</option>
+				</select>
+				<label for="rights"><h5>Rights</h5></label>
+				<select *ngIf="showRight" id="rights" name="rights" ngModel="{{selectedMember.rights}}" class="form-control col-sm-3" required>
+					<option value="0">No rights</option>
+					<option value="6">Read/Write</option>
+					<option value="1">Execute</option>
+					<option value="7">All</option>
+				</select>
+				<div *ngIf="!showRight" class="alert alert-info col-sm-3">Select Member</div>
 			</div>
 			<div id="button-holder" class="col-sm-3">
 				<a class="btn btn-secondary text-white back" (click)="back()">Back</a>

@@ -18,15 +18,18 @@ export class EditUserGroupsComponent implements OnInit {
 
 	user: User;
 	operation:String;
-	addUser=false;
+	addUser = false;
+	editUser = false;
+	selectedMember: UserGroupMember;
+	showRight = false;
 	groupData: Observable<UserGroup>;
 	groupId: string;
-	unique=true;
-	userGroupService= new  UserGroupService(this.http);
-	userService= new  UserService(this.http);
+	unique = true;
+	userGroupService = new  UserGroupService(this.http);
+	userService = new  UserService(this.http);
 	users: Observable<User[]>;
 	members: Observable<UserGroupMember[]>;
-	getRightName=getRightName;
+	getRightName = getRightName;
 	error:String;
 	errorOccured = false;
 	wantChangeRight = -1;
@@ -94,10 +97,13 @@ export class EditUserGroupsComponent implements OnInit {
 	updateGroup(data){
 		this.groupData.subscribe((response : UserGroup)=>{
 			let updated = null;
-			if(Object.keys(data).length == 2){
+			if(!this.addUser && !this.editUser){
 				updated = this.userGroupService.editGroup("group",response.id,data.description,data.groupName);
+			}else if(this.addUser){
+				updated = this.userGroupService.editGroup("addUser",response.id,data.description,data.groupName,data.userName,data.rights);
 			}else{
-				updated = this.userGroupService.editGroup("all",response.id,data.description,data.groupName,data.userName,data.rights);
+				this.showRight = false;
+				updated = this.userGroupService.editGroup("editUser",response.id,data.description,data.groupName,data.userName,data.rights);
 			}
 			if(updated != null){
 				updated.subscribe(response=> {
@@ -156,19 +162,6 @@ export class EditUserGroupsComponent implements OnInit {
 		});
 	}
 
-	changeRight(id, right){
-		console.log("id: "+id+", right: "+right);
-		/*let removed = this.userGroupService.removeUser(id);
-		removed.subscribe((response)=> {
-			let members = this.userGroupService.getUserGroupMembers(this.groupId);
-			members.subscribe((response)=> {}, err => {
-				console.log(err);
-			});
-		}, err => {
-			console.log(err);
-		});*/
-	}
-
 	filtering(filter){
 		if(filter == ""){
 			this.users = this.userService.getAllUser();
@@ -199,4 +192,29 @@ export class EditUserGroupsComponent implements OnInit {
 		}
 	}
 
+	wantEdit(){
+		this.editUser=!this.editUser;
+		if(!this.editUser){
+			this.showRight = false;
+		}
+	}
+
+	loadRight(id){
+		this.members.subscribe((response:UserGroupMember[])=> {
+			let i=0;
+			while((i<response.length) && (response[i].id!=id)){
+				i++;
+			}
+			if(i<response.length){
+				this.selectedMember = response[i];
+				this.showRight = true;
+			} else {
+				this.showRight = false;
+			}
+		}, err => {
+			this.error = err.error;
+			this.errorOccured = true;
+			console.log(err);
+		});
+	}
 }
