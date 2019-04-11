@@ -32,6 +32,7 @@ namespace OfficeHandlerService.Controllers
                     case "json": {
                             switch (templateType) {
                                 case TemplateType.word: officeHandler = new WordHandlerJSON(); break;
+                                case TemplateType.excel: officeHandler = new ExcelHandlerJSON(); break;
                                 default:
                                     return Content(HttpStatusCode.InternalServerError, "Handler cannot identify the template type");
                             }

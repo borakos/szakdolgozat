@@ -15,41 +15,7 @@ namespace OfficeHandlerService.Office {
 
         public abstract override string parse(string path);
 
-        private List<ExcelWorkbook> fillBlankData(int count) {
-            List<ExcelWorkbook> blank = new List<ExcelWorkbook>();
-            /*for(int i = 0; i < count; i++) {
-                ExcelWorkbook wb = new ExcelWorkbook();
-
-            }*/
-            ExcelWorkbook wb = new ExcelWorkbook();
-            wb.simpleValues["Vezetéknév"] = "NévV 1";
-            wb.simpleValues["Keresztnév"] = "NévK 1";
-            ExcelEnumeration enumer = new ExcelEnumeration();
-            enumer.values = new string[] { "Nyelv1", "Nyelv2" };
-            enumer.separator = ",";
-            blank.Add(wb);
-            wb.enumeratedValues["Nyelvek"] = enumer;
-            wb = new ExcelWorkbook();
-            wb.simpleValues["Vezetéknév"] = "NévV 2";
-            wb.simpleValues["Keresztnév"] = "NévK 2";
-            enumer = new ExcelEnumeration();
-            enumer.values = new string[] { "Nyelv1", "Nyelv2" };
-            enumer.separator = ";";
-            wb.enumeratedValues["Nyelvek"] = enumer;
-            blank.Add(wb);
-            wb = new ExcelWorkbook();
-            wb.simpleValues["Vezetéknév"] = "NévV 3";
-            wb.simpleValues["Keresztnév"] = "NévK 3";
-            enumer = new ExcelEnumeration();
-            enumer.values = new string[] { "Nyelv1", "Nyelv2" };
-            enumer.separator = "-";
-            wb.enumeratedValues["Nyelvek"] = enumer;
-            blank.Add(wb);
-            return blank;
-        }
-
         public override string execute(string path, string destination) {
-            wbs = fillBlankData(3);
             if (wbs != null) {
                 Excel.Application app = null;
                 Excel.Workbook wb = null;
@@ -57,14 +23,36 @@ namespace OfficeHandlerService.Office {
                     string error = null;
                     String[] paths = copyBaseFile(path, destination, wbs.Count, out error);
                     if (path != null) {
+                        Dictionary<int, List<KeyValuePair<int[], string>>> diffInTemplate = new Dictionary<int, List<KeyValuePair<int[], string>>>();
                         app = new Excel.Application();
                         for (int i = 0; i < paths.Length; i++) {
                             wb = app.Workbooks.Open(paths[i]);
-                            replaceSimpleValues(wb, wbs[i].simpleValues);
-                            replaceEnumeratedValues(wb, wbs[i].enumeratedValues);
-                            //replaceTableValues(wb, wbs[i].tables);
+                            wbs[i].unParsedSimpleValues = replaceSimpleValues(wb, wbs[i].simpleValues, wbs[i].unParsedSimpleValues);
+                            wbs[i].unParsedEnumeratedValues = replaceEnumeratedValues(wb, wbs[i].enumeratedValues, wbs[i].unParsedEnumeratedValues);
+                            wbs[i].unParsedtables = replaceTableValues(wb, wbs[i].tables, wbs[i].unParsedtables);
+                            List<KeyValuePair<int[], string>> diff = new List<KeyValuePair<int[], string>>();
+                            Excel.Worksheet sheet = (Excel.Worksheet)wb.ActiveSheet;
+                            Excel.Range range = sheet.Cells;
+                            Excel.Range found = range.Find(What: "<#<");
+                            while (found != null) {
+                                int[] pos = new int[2];
+                                pos[0] = found.Row;
+                                pos[1] = found.Column;
+                                string cell = found.Text;
+                                int start = cell.IndexOf("<#<");
+                                while (start > -1) {
+                                    int end = cell.IndexOf(">#>", start);
+                                    diff.Add(new KeyValuePair<int[], string>(pos, cell.Substring(start + 3, end - start - 3)));
+                                    start = cell.IndexOf("<#<", end);
+                                }
+                                sheet.Cells[found.Row,found.Column] = cell.Replace("<#<", "!#!");
+                                found = range.Find(What: "<#<");
+                            }
+                            range.Replace(What: "!#!", Replacement: "<#<");
+                            diffInTemplate[i] = diff;
                             wb.Save();
                         }
+                        writeDifferencesToFile(destination, diffInTemplate);
                         app.Quit();
                         try {
                             ExcelKiller.killProcess(app);
@@ -94,60 +82,131 @@ namespace OfficeHandlerService.Office {
             }
         }
 
-        private void replaceSimpleValues(Excel.Workbook wb, Dictionary<String, String> simpleValues) {
+        private void writeDifferencesToFile(string destination, Dictionary<int, List<KeyValuePair<int[], string>>> diffInTemplate) {
+            try {
+                FileStream differences = new FileStream(destination + "\\differences.txt", FileMode.Create);
+                StreamWriter writer = new StreamWriter(differences);
+                if (diffInTemplate.Count > 0) {
+                    writer.WriteLine("Template:");
+                    foreach (KeyValuePair<int, List<KeyValuePair<int[], string>>> item in diffInTemplate) {
+                        writer.WriteLine("\tSolution " + item.Key + ": " + item.Value.Count + " unparsed tag");
+                        foreach (KeyValuePair<int[], string> tag in item.Value) {
+                            writer.WriteLine("\t\tcell: [" + tag.Key[0] + "," + tag.Key[1] + "] , tag: " + tag.Value);
+                        }
+                        writer.WriteLine();
+                    }
+                    writer.WriteLine();
+                } else {
+                    writer.WriteLine("Template:\nAll tags successfully parsed.\n");
+                }
+                bool allParsed = true;
+                writer.WriteLine("Data: ");
+                for (int i = 0; i < wbs.Count; i++) {
+                    writer.WriteLine("\tDocumet: " + (i + 1));
+                    if (wbs[i].unParsedSimpleValues.Count > 0) {
+                        allParsed = false;
+                        writer.WriteLine("\t\tUnparsed simple values: " + wbs[i].unParsedSimpleValues.Count);
+                        foreach (string tag in wbs[i].unParsedSimpleValues) {
+                            writer.WriteLine("\t\t\t" + tag);
+                        }
+                    } else {
+                        writer.WriteLine("\t\tAll simple values parsed");
+                    }
+                    if (wbs[i].unParsedEnumeratedValues.Count > 0) {
+                        allParsed = false;
+                        writer.WriteLine("\t\tUnparsed enumerated values: " + wbs[i].unParsedEnumeratedValues.Count);
+                        foreach (string tag in wbs[i].unParsedEnumeratedValues) {
+                            writer.WriteLine("\t\t\t" + tag);
+                        }
+                    } else {
+                        writer.WriteLine("\t\tAll enumerated values parsed");
+                    }
+                    if (wbs[i].unParsedtables.Count > 0) {
+                        allParsed = false;
+                        writer.WriteLine("\t\tUnparsed tables: " + wbs[i].unParsedtables.Count);
+                        foreach (string tag in wbs[i].unParsedtables) {
+                            writer.WriteLine("\t\t\t" + tag);
+                        }
+                    } else {
+                        writer.WriteLine("\t\tAll tables parsed");
+                    }
+                    writer.WriteLine();
+                }
+                if (allParsed) {
+                    writer.WriteLine("All tags successfully parsed.\n");
+                }
+                writer.Close();
+            } catch (Exception ex) {
+                throw;
+            }
+        }
+
+        private List<string> replaceSimpleValues(Excel.Workbook wb, Dictionary<String, String> simpleValues, List<string> unParsed) {
             try {
                 Excel.Worksheet sheet = (Excel.Worksheet)wb.ActiveSheet;
                 Excel.Range range = sheet.Cells;
                 foreach (KeyValuePair<String, String> item in simpleValues) {
-                    range.Replace(What: "<#<" + item.Key + ">#>", Replacement: item.Value, MatchCase: true);
+                    if (range.Find(What: "<#<" + item.Key + ">#>") != null) {
+                        range.Replace(What: "<#<" + item.Key + ">#>", Replacement: item.Value, MatchCase: true);
+                        if (unParsed.Contains(item.Key)) {
+                            unParsed.Remove(item.Key);
+                        }
+                    }
                 }
+                return unParsed;
             } catch (Exception ex) {
                 throw;
             }
         }
 
-        private void replaceEnumeratedValues(Excel.Workbook wb, Dictionary<String, ExcelEnumeration> enumeratedValues) {
+        private List<string> replaceEnumeratedValues(Excel.Workbook wb, Dictionary<String, ExcelEnumeration> enumeratedValues, List<string> unParsed) {
             try {
                 Excel.Worksheet sheet = (Excel.Worksheet)wb.ActiveSheet;
                 Excel.Range range = sheet.Cells;
                 foreach (KeyValuePair<String, ExcelEnumeration> item in enumeratedValues) {
-                    range.Replace(What: "<#<" + item.Key + ">#>", Replacement: item.Value.ToString(), MatchCase: true);
+                    if (range.Find(What: "<#<" + item.Key + ">#>") != null) {
+                        range.Replace(What: "<#<" + item.Key + ">#>", Replacement: item.Value.ToString(), MatchCase: true);
+                        if (unParsed.Contains(item.Key)) {
+                            unParsed.Remove(item.Key);
+                        }
+                    }
                 }
+                return unParsed;
             } catch (Exception ex) {
                 throw;
             }
         }
 
-        /*private void replaceTableValues(Word.Document doc, List<WordTable> tables) {
-            if ((tables.Count > 0) && (doc.Tables.Count > 0)) {
-                List<Word.Table> wordTables = new List<Word.Table>();
-                foreach (Word.Table table in doc.Tables) {
-                    wordTables.Add(table);
-                }
-                foreach (WordTable item in tables) {
-                    List<int> selectedTables = new List<int>();
-                    for (int i = 0; i < wordTables.Count; i++) {
-                        Word.Range searchRange = wordTables[i].Cell(1, 1).Range.Previous(Word.WdUnits.wdParagraph, 1);
-                        if ((searchRange != null) && (searchRange.Text.IndexOf("<#<" + item.name + ">#>") != -1)) {
-                            selectedTables.Add(i);
-                        }
+        private List<string> replaceTableValues(Excel.Workbook wb, List<ExcelTable> tables, List<string> unParsed) {
+            try {
+                Excel.Worksheet sheet = (Excel.Worksheet)wb.ActiveSheet;
+                Excel.Range range = sheet.Cells;
+                foreach (ExcelTable table in tables) {
+                    Excel.Range found = range.Find(What: "<#<" + table.name + ">#>");
+                    if ((found != null) && (unParsed.Contains(table.name))) {
+                        unParsed.Remove(table.name);
                     }
-                    foreach (int i in selectedTables) {
-                        Word.Table wordTable = wordTables[i];
-                        Word.Range range = wordTables[i].Cell(1, 1).Range.Previous(Word.WdUnits.wdParagraph, 1);
-                        range.Find.ClearFormatting();
-                        range.Find.Execute(FindText: "<#<" + item.name + ">#>", ReplaceWith: "", Replace: Word.WdReplace.wdReplaceOne);
-                        for (int l = 0; l < item.items.Length; l++) {
-                            wordTable.Rows.Add();
-                            int lastLine = wordTable.Rows.Count;
-                            for (int j = 0; j < item.items[0].Length; j++) {
-                                wordTable.Cell(lastLine, j + 1).Range.Text = item.items[l][j];
+                    int count = 0;
+                    while (count <5 && found != null) {
+                        count++;
+                        int height = table.items.Length;
+                        for (int i = 0; i < height - 1; i++) {
+                            Excel.Range line = sheet.Rows[found.Row];
+                            line.Insert();
+                        }
+                        for (int i = 0; i < height; i++) {
+                            for (int j=0; j < table.items[i].Length; j++) {
+                                sheet.Cells[found.Row - (height - i -1), found.Column + j] = table.items[i][j];
                             }
                         }
+                        found = range.Find(What: "<#<" + table.name + ">#>");
                     }
                 }
+                return unParsed;
+            } catch (Exception ex) {
+                throw;
             }
-        }*/
+        }
 
         public override MemoryStream toStream(out string error) {
             try {
@@ -208,6 +267,9 @@ namespace OfficeHandlerService.Office {
             public Dictionary<String, String> simpleValues = new Dictionary<string, string>();
             public Dictionary<String, ExcelEnumeration> enumeratedValues = new Dictionary<string, ExcelEnumeration>();
             public List<ExcelTable> tables = new List<ExcelTable>();
+            public List<string> unParsedSimpleValues = new List<string>();
+            public List<string> unParsedEnumeratedValues = new List<string>();
+            public List<string> unParsedtables = new List<string>();
         }
 
         protected class ExcelEnumeration {

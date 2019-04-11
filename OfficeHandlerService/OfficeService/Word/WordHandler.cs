@@ -23,15 +23,32 @@ namespace OfficeHandlerService.Office {
                 try {
                     String[] paths = copyBaseFile(path, destination, docs.Count, out error);
                     if (paths != null) {
+                        Dictionary<int,List<KeyValuePair<int, string>>> diffInTemplate = new Dictionary<int,List<KeyValuePair<int, string>>>();
                         app = new Word.Application();
                         for (int i = 0; i < paths.Length; i++) {
                             doc = app.Documents.Open(paths[i]);
-                            replaceSimpleValues(doc, docs[i].simpleValues);
-                            replaceEnumeratedValues(doc, docs[i].enumeratedValues);
-                            replaceTableValues(doc, docs[i].tables);
-                            replaceListValues(doc, docs[i].lists);
+                            Word.Range range = doc.Content;
+                            docs[i].unParsedSimpleValues = replaceSimpleValues(doc, docs[i].simpleValues,docs[i].unParsedSimpleValues);
+                            docs[i].unParsedEnumeratedValues = replaceEnumeratedValues(doc, docs[i].enumeratedValues,docs[i].unParsedEnumeratedValues);
+                            docs[i].unParsedtables = replaceTableValues(doc, docs[i].tables, docs[i].unParsedtables);
+                            docs[i].unParsedlists = replaceListValues(doc, docs[i].lists, docs[i].unParsedlists);
+                            List<KeyValuePair<int, string>> diff = new List<KeyValuePair<int, string>>();
+                            int parag = 0;
+                            foreach (Word.Paragraph paragraph in doc.Paragraphs) {
+                                parag++;
+                                int startPos = paragraph.Range.Text.IndexOf("<#<");
+                                while (startPos > -1) {
+                                    int endPos = paragraph.Range.Text.IndexOf(">#>", startPos);
+                                    if (endPos > -1) {
+                                        diff.Add(new KeyValuePair<int, string>(parag,paragraph.Range.Text.Substring(startPos + 3, endPos - startPos - 3)));
+                                    }
+                                    startPos = paragraph.Range.Text.IndexOf("<#<", endPos);
+                                }
+                            }
+                            diffInTemplate[i + 1] = diff;
                             doc.Save();
                         }
+                        writeDifferencesToFile(destination, diffInTemplate);
                         app.Quit();
                         int j = 0;
                         while ((j < 100) && (Directory.GetFiles(destination).Length != docs.Count)) {
@@ -57,31 +74,107 @@ namespace OfficeHandlerService.Office {
             }
         }
 
-        private void replaceSimpleValues(Word.Document doc, Dictionary<String, String> simpleValues) {
+        private void writeDifferencesToFile(string destination, Dictionary<int, List<KeyValuePair<int, string>>> diffInTemplate) {
+            try {
+                FileStream differences = new FileStream(destination + "\\differences.txt", FileMode.Create);
+                StreamWriter writer = new StreamWriter(differences);
+                if (diffInTemplate.Count > 0) {
+                    writer.WriteLine("Template:");
+                    foreach (KeyValuePair<int, List<KeyValuePair<int, string>>> item in diffInTemplate) {
+                        writer.WriteLine("\tSolution " + item.Key + ": " + item.Value.Count + " unparsed tag");
+                        foreach (KeyValuePair<int, string> tag in item.Value) {
+                            writer.WriteLine("\t\tparagraph: " + tag.Key + ", tag: " + tag.Value);
+                        }
+                        writer.WriteLine();
+                    }
+                    writer.WriteLine();
+                } else {
+                    writer.WriteLine("Template:\nAll tags successfully parsed.\n");
+                }
+                bool allParsed = true;
+                writer.WriteLine("Data: ");
+                for (int i = 0; i < docs.Count; i++) {
+                    writer.WriteLine("\tDocumet: " + (i + 1));
+                    if (docs[i].unParsedSimpleValues.Count > 0) {
+                        allParsed = false;
+                        writer.WriteLine("\t\tUnparsed simple values: " + docs[i].unParsedSimpleValues.Count);
+                        foreach (string tag in docs[i].unParsedSimpleValues) {
+                            writer.WriteLine("\t\t\t" + tag);
+                        }
+                    } else {
+                        writer.WriteLine("\t\tAll simple values parsed");
+                    }
+                    if (docs[i].unParsedEnumeratedValues.Count > 0) {
+                        allParsed = false;
+                        writer.WriteLine("\t\tUnparsed enumerated values: " + docs[i].unParsedEnumeratedValues.Count);
+                        foreach (string tag in docs[i].unParsedEnumeratedValues) {
+                            writer.WriteLine("\t\t\t" + tag);
+                        }
+                    } else {
+                        writer.WriteLine("\t\tAll enumerated values parsed");
+                    }
+                    if (docs[i].unParsedtables.Count > 0) {
+                        allParsed = false;
+                        writer.WriteLine("\t\tUnparsed tables: " + docs[i].unParsedtables.Count);
+                        foreach (string tag in docs[i].unParsedtables) {
+                            writer.WriteLine("\t\t\t" + tag);
+                        }
+                    } else {
+                        writer.WriteLine("\t\tAll tables parsed");
+                    }
+                    if (docs[i].unParsedlists.Count > 0) {
+                        allParsed = false;
+                        writer.WriteLine("\t\tUnparsed lists: " + docs[i].unParsedlists.Count);
+                        foreach (string tag in docs[i].unParsedlists) {
+                            writer.WriteLine("\t\t\t" + tag);
+                        }
+                    } else {
+                        writer.WriteLine("\t\tAll lists parsed");
+                    }
+                    writer.WriteLine();
+                }
+                if (allParsed) {
+                    writer.WriteLine("All tags successfully parsed.\n");
+                }
+                writer.Close();
+            } catch(Exception ex) {
+                throw;
+            }
+        }
+
+        private List<string> replaceSimpleValues(Word.Document doc, Dictionary<String, String> simpleValues, List<string> unParsed) {
             try {
                 Word.Range range = doc.Content;
                 foreach (KeyValuePair<String, String> item in simpleValues) {
                     range.Find.ClearFormatting();
                     range.Find.Execute(FindText: "<#<" + item.Key + ">#>", ReplaceWith: item.Value, Replace: Word.WdReplace.wdReplaceAll);
+                    if (range.Find.Found && unParsed.Contains(item.Key)) {
+                        unParsed.Remove(item.Key);
+                    }
                 }
+                return unParsed;
             }catch (Exception ex) {
                 throw;
             }
         }
 
-        private void replaceEnumeratedValues(Word.Document doc, Dictionary<String, WordEnumeration> enumeratedValues) {
+        private List<string> replaceEnumeratedValues(Word.Document doc, Dictionary<String, WordEnumeration> enumeratedValues, List<string> unParsed) {
             try {
                 Word.Range range = doc.Content;
                 foreach (KeyValuePair<String, WordEnumeration> item in enumeratedValues) {
                     range.Find.ClearFormatting();
                     range.Find.Execute(FindText: "<#<" + item.Key + ">#>", ReplaceWith: item.Value.ToString(), Replace: Word.WdReplace.wdReplaceAll);
+                    if (range.Find.Found && unParsed.Contains(item.Key)) {
+                        unParsed.Remove(item.Key);
+                    }
                 }
+                return unParsed;
             } catch (Exception ex) {
                 throw;
             }
         }
 
-        private void replaceTableValues(Word.Document doc, List<WordTable> tables) {
+        private List<string> replaceTableValues(Word.Document doc, List<WordTable> tables, List<string> unParsed) {
             try {
                 if ((tables.Count > 0) && (doc.Tables.Count > 0)) {
                     List<Word.Table> wordTables = new List<Word.Table>();
@@ -109,14 +202,18 @@ namespace OfficeHandlerService.Office {
                                 }
                             }
                         }
+                        if ((selectedTables.Count > 0) && (unParsed.Contains(item.name))){
+                            unParsed.Remove(item.name);
+                        }
                     }
                 }
+                return unParsed;
             } catch (Exception ex) {
                 throw;
             }
         }
 
-        private void replaceListValues(Word.Document doc, List<WordList> lists) {
+        private List<string> replaceListValues(Word.Document doc, List<WordList> lists, List<string> unParsed) {
             try {
                 if ((lists.Count > 0) && (doc.Lists.Count > 0)) {
                     List<Word.List> wordLists = new List<Word.List>();
@@ -124,14 +221,21 @@ namespace OfficeHandlerService.Office {
                         wordLists.Add(list);
                     }
                     foreach (WordList item in lists) {
-                        List<int> selectedLists = new List<int>();
+                        List<int[]> selectedLists = new List<int[]>();
+                        Dictionary<int, int> move = new Dictionary<int, int>();
                         for (int i = 0; i < wordLists.Count; i++) {
-                            if (wordLists[i].ListParagraphs[1].Range.Text.IndexOf("<#<" + item.name + ">#>") != -1) {
-                                selectedLists.Add(i);
+                            for (int j = 0; j < wordLists[i].ListParagraphs.Count; j++) {
+                                if (wordLists[i].ListParagraphs[j + 1].Range.Text.IndexOf("<#<" + item.name + ">#>") != -1) {
+                                    int[] list = new int[2];
+                                    list[0] = i;
+                                    list[1] = j + 1;
+                                    move[i] = 0;
+                                    selectedLists.Add(list);
+                                }
                             }
                         }
-                        foreach (int i in selectedLists) {
-                            Word.Paragraph paragraph = wordLists[i].ListParagraphs[1];
+                        foreach (int[] list in selectedLists) {
+                            Word.Paragraph paragraph = wordLists[list[0]].ListParagraphs[list[1] + move[list[0]]];
                             Word.ParagraphFormat format = paragraph.Format;
                             paragraph.Range.Find.ClearFormatting();
                             paragraph.Range.Find.Execute(FindText: "<#<" + item.name + ">#>", ReplaceWith: item.items[item.items.Count - 1].value, Replace: Word.WdReplace.wdReplaceOne);
@@ -144,9 +248,14 @@ namespace OfficeHandlerService.Office {
                                 paragraph.Format = format;
                                 paragraph.Range.SetListLevel((short)(item.items[j].level + 1));
                             }
+                            move[list[0]] += item.items.Count - 1;
+                        }
+                        if((selectedLists.Count>0) && (unParsed.Contains(item.name))) {
+                            unParsed.Remove(item.name);
                         }
                     }
                 }
+                return unParsed;
             } catch (Exception ex) {
                 throw;
             }
@@ -204,6 +313,10 @@ namespace OfficeHandlerService.Office {
             public Dictionary<String, WordEnumeration> enumeratedValues = new Dictionary<string, WordEnumeration>();
             public List<WordTable> tables = new List<WordTable>();
             public List<WordList> lists = new List<WordList>();
+            public List<string> unParsedSimpleValues = new List<string>();
+            public List<string> unParsedEnumeratedValues = new List<string>();
+            public List<string> unParsedtables = new List<string>();
+            public List<string> unParsedlists = new List<string>();
         }
 
         protected class WordTable {

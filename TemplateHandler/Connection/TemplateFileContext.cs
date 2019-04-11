@@ -211,7 +211,7 @@ namespace TemplateHandler.Connection {
                 List<UserGroupModel> list = new List<UserGroupModel>();
                 MySqlConnection conn = getConnection();
                 string sql = "SELECT ug.id, ug.name group_name, ug.description, ug.real_group FROM users_user_groups uug JOIN user_groups ug ON uug.group_id=ug.id ";
-                sql += "WHERE ug.id IN (SELECT group_id FROM users_user_groups uug WHERE user_id = @id)";
+                sql += "WHERE ug.id IN (SELECT group_id FROM users_user_groups uug WHERE user_id = @id) And uug.user_id =@id";
                 conn.Open();
                 MySqlCommand cmd = new MySqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@id", id);

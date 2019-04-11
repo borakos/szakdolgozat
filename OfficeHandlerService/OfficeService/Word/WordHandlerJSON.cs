@@ -44,6 +44,7 @@ namespace OfficeHandlerService.Office {
                             if (simpleLines[j].IndexOf(":") > -1) {
                                 String[] pairs = simpleLines[j].Split(':');
                                 doc.simpleValues.Add(pairs[0].Trim(simpleTrim).Trim('"'), pairs[1].Trim(simpleTrim).Trim('"'));
+                                doc.unParsedSimpleValues.Add(pairs[0].Trim(simpleTrim).Trim('"'));
                             }
                         }
                         words.Add(doc);
@@ -158,8 +159,17 @@ namespace OfficeHandlerService.Office {
                     }
                 }
                 doc.enumeratedValues = convertJSONToEnumeration(enumrartions, generateTrimList("[],:\""));
+                foreach(KeyValuePair<String, WordEnumeration> item in doc.enumeratedValues) {
+                    doc.unParsedEnumeratedValues.Add(item.Key);
+                }
                 doc.tables = convertJSONToTable(tables, generateTrimList("[],:"));
+                foreach (WordTable item in doc.tables) {
+                    doc.unParsedtables.Add(item.name);
+                }
                 doc.lists = convertJSONToList(lists, generateTrimList("[],:\""));
+                foreach (WordList item in doc.lists) {
+                    doc.unParsedlists.Add(item.name);
+                }
                 error = null;
                 return sb.ToString();
             } catch (Exception ex) {
