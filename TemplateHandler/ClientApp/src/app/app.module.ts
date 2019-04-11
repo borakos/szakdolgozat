@@ -113,6 +113,8 @@ export class AppModule {
 	ngDoBootstrap(){
 		const customNav=createCustomElement(NavComponent,{injector: this.injector});
 		customElements.define('app-nav',customNav);
+		const customLogin=createCustomElement(LoginComponent,{injector: this.injector});
+		customElements.define('app-login',customLogin);
 	}
 }
 
