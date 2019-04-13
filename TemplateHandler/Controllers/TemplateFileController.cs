@@ -143,8 +143,8 @@ namespace TemplateHandler.Controllers{
 
         private string uploadTemplate(IFormFile file, int ownerId, int groupId, String name, int version, out string error) {
             try {
-                String fullPath = null;
-                String pathToSave = Path.Combine(Directory.GetCurrentDirectory(), "Resources\\Templates\\" + ownerId + "\\" + groupId);
+                String relativePath = "Resources\\Templates\\" + ownerId + "\\" + groupId;
+                String pathToSave = Path.Combine(Directory.GetCurrentDirectory(), relativePath);
                 if (!Directory.Exists(pathToSave)) {
                     Directory.CreateDirectory(pathToSave);
                 }
@@ -152,12 +152,12 @@ namespace TemplateHandler.Controllers{
                     String fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
                     String[] fileNameExtension = fileName.Split(".");
                     fileNameExtension[0] = ownerId + "_" + groupId + "_" + version + "_" + name;
-                    fullPath = Path.Combine(pathToSave, String.Join(".", fileNameExtension));
-                    FileStream stream = new FileStream(fullPath, FileMode.Create);
+                    relativePath = Path.Combine(relativePath, String.Join(".", fileNameExtension));
+                    FileStream stream = new FileStream(Path.Combine(Directory.GetCurrentDirectory(), relativePath), FileMode.Create);
                     file.CopyTo(stream);
                     stream.Close();
                     error = null;
-                    return fullPath;
+                    return relativePath;
                 } else {
                     error = null;
                     return null;

@@ -35,7 +35,7 @@ namespace TemplateHandler.Controllers
                     if (path != null) {
                         HttpClient executor = new HttpClient();
                         executor.BaseAddress = new Uri("http://localhost:50519/api/execute/");
-                        var responseTask = executor.GetAsync("execute?templatePath=" + templateModel.path + "&templateType=" + templateModel.type + "&dataPath=" + path);
+                        var responseTask = executor.GetAsync("execute?templatePath=" + Path.Combine(Directory.GetCurrentDirectory(), templateModel.path) + "&templateType=" + templateModel.type + "&dataPath=" + path);
                         responseTask.Wait();
                         HttpResponseMessage result = responseTask.Result;
                         var readTask = result.Content.ReadAsAsync<string>();
